@@ -7,3 +7,4 @@ screen*.png
 *.log
 *.pkl
 nul.tmp
+logs/

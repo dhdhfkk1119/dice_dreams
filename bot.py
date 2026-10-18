@@ -77,7 +77,7 @@ def shot(name=None):
         if img is not None:
             return img
         if waited % 30 == 0:
-            print(time.strftime("%H:%M:%S"), "no screenshot: phone/adb disconnected? waiting...", flush=True)
+            log("no screenshot: phone/adb disconnected? waiting...")
         if waited and waited % 60 == 0:
             subprocess.run([ADB, "kill-server"], capture_output=True)
             subprocess.run([ADB, "start-server"], capture_output=True)
@@ -102,7 +102,7 @@ def lock_buy_zone():
 def tap(p, wait=1.5):
     x0, y0, x1, y1 = BUY_ZONE
     if time.time() < _buy_lock_until and x0 <= p[0] <= x1 and y0 <= p[1] <= y1:
-        print(time.strftime("%H:%M:%S"), f"BLOCKED tap {p}: payment screen seen, never buy", flush=True)
+        log(f"BLOCKED tap {p}: payment screen seen, never buy")
         time.sleep(wait)
         return
     adb("shell", "input", "tap", str(p[0]), str(p[1]))
@@ -458,8 +458,19 @@ def prices(img):
     return sorted(out, key=lambda a: a[1])
 
 
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+
+
 def log(*a):
-    print(time.strftime("%H:%M:%S"), *a, flush=True)
+    """Print to the screen and append to logs/YYYY-MM-DD.log (one file per day, kept across restarts)."""
+    line = time.strftime("%H:%M:%S") + " " + " ".join(str(x) for x in a)
+    print(line, flush=True)
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        with open(os.path.join(LOG_DIR, time.strftime("%Y-%m-%d") + ".log"), "a", encoding="utf-8") as fh:
+            fh.write(line + chr(10))
+    except OSError:
+        pass
 
 
 CROWN_Y = 2053                       # crown row of every building card
