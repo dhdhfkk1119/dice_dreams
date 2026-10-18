@@ -814,6 +814,7 @@ def front_card(first=True):
 COMPLETE_BOX = (0, 1450, 1080, 1700)    # build panel: the green "FREE (video) COMPLETE NOW" bubble hovers above the front unfinished card (its x moves)
 
 
+_watch_times = []  # when a popup WATCH button was pressed lately
 _cn_times = []   # when the FREE COMPLETE NOW button was pressed lately
 
 
@@ -1273,6 +1274,17 @@ def main():
                         ride_ad()
                 continue
             found = ocr(img)[0] or []
+            wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
+                  if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
+            _watch_times[:] = [x for x in _watch_times if time.time() - x < 300]
+            if wt and len(_watch_times) < 3 and not re.search(r"[$₩€£]", " ".join(r[1] for r in found)):
+                # an offer popup with a WATCH (free video) button: take it, same as the lobby bubble
+                _watch_times.append(time.time())
+                log(f"popup WATCH button at {wt[0]}: watching the video")
+                tap(wt[0], 3)
+                if is_ad_focus(focus()):
+                    ride_ad()
+                continue
             for b, t, _ in found:  # game guide: "TAP & HOLD" with a hand on the target just below the words
                 if re.search(r"TAP\s*[&8A]?\s*(AND\s*)?HOLD", t.strip().upper()):
                     hx = int(sum(p[0] for p in b) / 4)
