@@ -1,0 +1,9 @@
+__pycache__/
+# adb / platform-tools binaries
+tools/
+# screenshots and run data (they show other players' names and photos)
+shots/
+screen*.png
+*.log
+*.pkl
+nul.tmp
