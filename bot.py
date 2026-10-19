@@ -763,6 +763,164 @@ def recover(img, stuck):
         touch_ok()
 
 
+TRAIL_ICON = (953, 1977)             # lobby, bottom right: the TRAIL event icon (its badge = trail tokens)
+TRAIL_BADGE = (950, 1880, 1060, 1935)   # the token count on that icon
+TRAIL_GO = (538, 1895)               # trail screen: the big GO! button
+TRAIL_MULT = (805, 1895)             # trail screen: the xN badge (each tap = next multiplier)
+TRAIL_TOKENS_BOX = (330, 2090, 780, 2200)
+TRAIL_MULT_BOX = (730, 1840, 900, 1960)
+TRAIL_CYCLE = [1, 5, 10, 15, 20, 30, 50, 100, 200, 400, 600, 800, 1200, 2000]   # measured: one tap = next entry
+TRAIL_AT = 200        # start spending when this many tokens have piled up ...
+TRAIL_BEST = 50       # ... at x50 (as the user asked), stepping down for the remainder until 0
+_trail_check = 0.0
+
+
+def _num_from(img, box, scale=2):
+    x0, y0, x1, y1 = box
+    c = cv2.resize(img[y0:y1, x0:x1], None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+    best = None
+    for _, t, _ in ocr(c)[0] or []:
+        d = re.sub(r"[^\d]", "", t)
+        if d and (best is None or len(d) > len(best)):
+            best = d
+    return int(best) if best else None
+
+
+def trail_tokens_lobby(img):
+    return _num_from(img, TRAIL_BADGE, 3)
+
+
+def trail_tokens_screen(img):
+    return _num_from(img, TRAIL_TOKENS_BOX, 2)
+
+
+def trail_mult(img):
+    x0, y0, x1, y1 = TRAIL_MULT_BOX
+    c = cv2.resize(img[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+    for _, t, _ in ocr(c)[0] or []:
+        m = re.fullmatch(r"[xX×]\s*(\d{1,4})", t.strip())
+        if m and int(m.group(1)) in TRAIL_CYCLE:
+            return int(m.group(1))
+    return None
+
+
+def trail_screen(img):
+    """On the trail page: the GO button (orange disc) in the middle bottom and the wheel above it."""
+    c = img[1790:2000, 400:680].astype(int)
+    b, g, r = c[..., 0], c[..., 1], c[..., 2]
+    return float(((r > 200) & (g < 130) & (b < 90)).mean()) > 0.2 and trail_tokens_screen(img) is not None
+
+
+def trail_set_mult(target):
+    """Tap the xN badge until it reads `target` (the cycle is known, so count the taps)."""
+    for _ in range(3):
+        cur = trail_mult(shot())
+        if cur == target:
+            return True
+        if cur in TRAIL_CYCLE:
+            n = (TRAIL_CYCLE.index(target) - TRAIL_CYCLE.index(cur)) % len(TRAIL_CYCLE)
+        else:
+            n = 1
+        for _ in range(n):
+            tap(TRAIL_MULT, 0.5)
+        time.sleep(0.6)
+    return trail_mult(shot()) == target
+
+
+def use_trail():
+    """Spend the trail tokens down to 0: x50 spins while at least 50 remain, then the biggest multiplier that fits
+    (30, 20, 15, 10, 5, 1) for the rest. Each spin: GO, wait, take whatever pops up (chest, TAP, COLLECT, X)."""
+    log("trail: opening the TRAIL event")
+    if not trail_screen(shot()):
+        tap(TRAIL_ICON, 3.5)
+    for _ in range(8):
+        if trail_screen(shot()):
+            break
+        time.sleep(1.0)
+    else:
+        log("trail: the page did not open")
+        return False
+    spins, bad, last, mult_fail, t_start = 0, 0, None, 0, time.time()
+    for _ in range(60):
+        img = shot()
+        if not trail_screen(img):
+            # a chest / card / reward popup is on top: take it (X, a named button, or a tap anywhere)
+            xy = find_close_x(img)
+            if xy:
+                tap(xy, 1.2)
+                continue
+            found = ocr(img)[0] or []
+            hit = next(((int(sum(q[0] for q in b) / 4), int(sum(q[1] for q in b) / 4)) for b, t, _ in found
+                        if t.strip().upper().strip("!") in BUTTONS), None)
+            if roll_visible(img):
+                log("trail: back in the lobby")
+                break
+            tap(hit or ANYWHERE, 1.0)
+            continue
+        tokens = trail_tokens_screen(img)
+        if tokens is None or tokens < 1:
+            log("trail: no tokens left")
+            break
+        want = max([m for m in TRAIL_CYCLE if m <= min(TRAIL_BEST, tokens)] or [1])
+        if trail_mult(img) != want and not trail_set_mult(want):
+            mult_fail += 1
+            log(f"trail: could not set x{want} ({mult_fail}/3)")
+            if mult_fail >= 3:
+                break
+            time.sleep(2.0)  # a reward popup may be sliding in: look again
+            continue
+        mult_fail = 0
+        if spins >= 40 or time.time() - t_start > 900:
+            log("trail: spin / time limit reached, leaving")
+            break
+        spins += 1
+        log(f"trail: spin #{spins} at x{want} (tokens {tokens})")
+        tap(TRAIL_GO, 1.0)
+        t0 = time.time()
+        changed = False
+        while time.time() - t0 < 25:   # the spin, the walk and any chest take a while: wait for the count to move
+            time.sleep(1.0)
+            im2 = shot()
+            if trail_screen(im2):
+                n2 = trail_tokens_screen(im2)
+                if n2 is not None and n2 != tokens:
+                    changed = True
+                    break
+            else:
+                xy = find_close_x(im2)
+                found = ocr(im2)[0] or []
+                hit = next(((int(sum(q[0] for q in b) / 4), int(sum(q[1] for q in b) / 4)) for b, t, _ in found
+                            if t.strip().upper().strip("!") in BUTTONS), None)
+                tap(xy or hit or ANYWHERE, 0.8)
+        bad = 0 if changed else bad + 1
+        if changed:
+            time.sleep(2.5)  # the walk / chest after a spin: GO does not react until it is over
+        if bad >= 3:
+            log("trail: the count does not move, leaving")
+            break
+    log(f"trail: done after {spins} spins")
+    for _ in range(3):  # back to the lobby
+        img = shot()
+        if roll_visible(img):
+            break
+        ba = find_back_arrow(img)
+        tap(ba or (105, 210), 2.0)
+    return True
+
+
+def maybe_trail(img):
+    """Lobby check, at most every 2 minutes: TRAIL badge >= TRAIL_AT -> spend them."""
+    global _trail_check
+    if time.time() - _trail_check < 120:
+        return False
+    _trail_check = time.time()
+    n = trail_tokens_lobby(img)
+    if n is not None and n >= TRAIL_AT:
+        log(f"trail tokens {n} >= {TRAIL_AT}: spending them")
+        return use_trail()
+    return False
+
+
 def is_ad_any(f):
     """An ad window, also when it runs in another package (Facebook Audience Network and friends)."""
     fl = f.lower()
@@ -1852,6 +2010,9 @@ def main():
                     if n:
                         cur_step = None
                         continue
+            if not free_mode and maybe_trail(img):
+                cur_step = None
+                continue
             if not free_mode:
                 # the "MAX xN" bubble names the best multiplier on offer right now: match it when it's shown.
                 # When it isn't shown at all, leave the multiplier alone and just roll.
