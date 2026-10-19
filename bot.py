@@ -52,7 +52,8 @@ MAX_BOX = (670, 1800, 870, 1878)   # the "MAX xN" bubble: the highest multiplier
 STEAL = (540, 1919)
 TARGET = (532, 819)       # attack: castle pin
 SLING = (540, 1640, 540, 2050)  # pull straight down -> bullseye (tested: x1.5 bullseye)
-BUTTONS = {"COLLECT", "CLAIM", "OK", "CONTINUE", "NEXT", "AWESOME", "GREAT", "YAY", "COOL", "TAP TO CONTINUE"}
+BUTTONS = {"COLLECT", "CLAIM", "OK", "CONTINUE", "NEXT", "AWESOME", "GREAT", "YAY", "COOL", "TAP TO CONTINUE",
+           "AMAZING", "FREE", "WOW", "NICE", "PERFECT", "EXCELLENT", "SUPER", "GOT IT", "LET'S GO"}  # green "go on" / free-gift buttons
 NEUTRAL = (540, 1450)     # dismisses reward popups
 COIN_BOX = (200, 100, 650, 300)
 ENERGY_BOX = (250, 2150, 800, 2320)
@@ -194,7 +195,7 @@ def energy_est(img, last_was_roll):
     return v
 
 
-def bar_fill(img):
+def bar_fill(img, max_e=50):
     """Energy from the bar itself (light-blue fill along the top and bottom edge of the bar, clear of the digits):
     ~0.95 at 50, 0.0 at 0. The bolt icon next to a one-digit number is read as a "4" ("49/50" for 9, "40/50" for 0),
     so the picture decides between the two readings."""
@@ -202,14 +203,14 @@ def bar_fill(img):
     for y in (2178, 2224):
         row = img[y, 300:800].astype(int)
         vals.append(float(((row[:, 0] > 180) & (row[:, 1] > 150)).mean()))
-    return min(vals) * 52.6
+    return min(vals) / 0.95 * max_e
 
 
-def _fix_by_bar(img, n):
+def _fix_by_bar(img, n, max_e=50):
     top = cv2.cvtColor(img[150:240, 200:500], cv2.COLOR_BGR2HSV)
     if cv2.inRange(top, (95, 40, 190), (112, 200, 255)).mean() / 255 < 0.15:  # HUD dimmed: the bar says nothing
         return n
-    est = bar_fill(img)
+    est = bar_fill(img, max_e)
     cands = [n] + ([n - 40] if 40 <= n <= 49 else []) + ([n + 40] if n <= 9 else [])
     best = min(cands, key=lambda c: abs(c - est))
     return best if abs(best - est) <= 14 else n
@@ -221,11 +222,13 @@ def energy(img):
     global free_mode
     free_mode = False
     n = extra = None
+    max_e = 50
     for _, t in read(img, ENERGY_BOX):
-        m = re.search(r"(\d+)\s*/\s*50", t)
+        m = re.search(r"(\d+)\s*/\s*(\d{2,3})", t)
         if m and n is None:
             n = int(m.group(1))
-            if n > 50:  # misread (e.g. "4" + "/50")
+            max_e = int(m.group(2))   # the cap grows with the kingdom (50, 60, ...)
+            if n > max_e:  # misread (e.g. "4" + "/50")
                 n = int(str(n)[-1])
             continue
         m = re.search(r"\+?\s*(\d[\d,]*)\s*extra", t, re.I)
@@ -238,7 +241,7 @@ def energy(img):
             return int(d) if d else 1
     if n is None:
         return None
-    n = _fix_by_bar(img, n)
+    n = _fix_by_bar(img, n, max_e)
     return n + (extra or 0)
 
 
@@ -283,6 +286,12 @@ def steal_tiles(img):
     n, _, st, cent = cv2.connectedComponentsWithStats(m)
     tiles = [(int(cent[i][0]), int(cent[i][1]) + 1600) for i in range(1, n) if 12000 < st[i, 4] < 32000]
     return sorted(tiles) if len(tiles) >= 2 else []
+
+
+def is_sling(img):
+    """The slingshot screen: the maroon strap AND no popup on top (an event popup with dark bags also looks like a
+    strap to the colour test, but it has a close X)."""
+    return sling.sling_visible(img) and find_close_x(img) is None
 
 
 def find_close_x(img):
@@ -521,8 +530,34 @@ PRICE_TO_CENTER = -29                # card centre x = price-text x + this
 def scroll_cards(direction, px=650):
     """Swipe the card strip: direction +1 shows cards further right, -1 goes back left."""
     a, b = (950, 950 - px) if direction > 0 else (150, 150 + px)
-    adb("shell", "input", "swipe", str(a), "2050", str(b), "2050", "180")
-    time.sleep(0.45)
+    adb("shell", "input", "swipe", str(a), "2050", str(b), "2050", "450")  # a slower swipe throws the strip less
+    time.sleep(0.3)
+
+
+def settle(max_s=2.5):
+    """Wait until the card strip stands still (two frames in a row alike) and return that frame: a scroll keeps
+    gliding for a moment and prices read on a moving strip come out wrong or double."""
+    prev, img, t0 = None, None, time.time()
+    while time.time() - t0 < max_s:
+        img = shot()
+        key = img[1960:2260:6, ::6].astype(int)
+        if prev is not None and float(np.abs(key - prev).mean()) < 2.0:
+            return img
+        prev = key
+    return img
+
+
+def read_page():
+    """One screen of the strip (three cards): wait for it to settle, read the prices, and read once more when the
+    list differs from a second look. Returns (frame, [(price, x), ...] left to right)."""
+    img = settle()
+    ps = prices(img)
+    if ps:
+        img2 = shot()
+        ps2 = prices(img2)
+        if [p for p, _ in ps2] != [p for p, _ in ps]:
+            img, ps = img2, ps2
+    return img, ps
 
 
 def scroll_to_start():
@@ -550,15 +585,14 @@ def scan_cards():
     scroll_to_start()
     seen, last = {}, None
     for page in range(7):
-        img = shot()
-        ps = prices(img)
+        img, ps = read_page()
         key = tuple(p for p, _ in ps)
         if page and key == last:
             break  # the strip did not move: that was the end
         last = key
         for price, x in ps:
             seen.setdefault(price, {"price": price, "crowns": crowns_filled(img, x), "page": page})
-        scroll_cards(+1)
+        scroll_cards(+1, 900)  # one page = the three visible cards
     return list(seen.values())
 
 
@@ -628,16 +662,111 @@ AD_WORDS = ("fullscreen", "adrenderer", ".ads.", "adactivity", "applovin", "byte
             "rewarded", "interstitial")
 
 
+PROTECTED_PKGS = ("android", "com.android.systemui", "com.sec.android.app.launcher", "com.samsung.android.app.launcher",
+                  GAME_PKG if "GAME_PKG" in globals() else "com.superplaystudios.dicedreams")
+
+
 def leave_other_app(f):
-    """The Play Store (or a browser) opened over the game. BACK loops between its screens, so kill the app:
-    the game's ad is underneath again. Nothing is ever installed."""
+    """Another app opened over the game (Play Store, a browser, an advertiser's app such as Trip.com).
+    Stores and browsers are killed at once (BACK just loops inside them). Any other app gets one BACK; if it is
+    still in front after that (some apps want BACK twice or ignore it) it is force-stopped, and the game is
+    brought back if needed. Nothing is ever installed or bought."""
     for pkg in ("com.android.vending", "com.android.chrome", "com.sec.android.app.sbrowser"):
         if pkg in f:
             adb("shell", "am", "force-stop", pkg)
             time.sleep(1.5)
             return
+    m = re.search(r"\s([\w.]+)/", f)
+    pkg = m.group(1) if m else ""
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
-    time.sleep(2)
+    time.sleep(1.2)
+    f2 = focus()
+    if pkg and pkg in f2 and pkg not in PROTECTED_PKGS:
+        log(f"{pkg} is still in front after BACK: closing the app")
+        adb("shell", "am", "force-stop", pkg)
+        time.sleep(1.5)
+        if GAME_PKG not in focus():
+            adb("shell", "monkey", "-p", GAME_PKG, "-c", "android.intent.category.LAUNCHER", "1")
+            time.sleep(4)
+    else:
+        time.sleep(0.8)
+
+
+STUCK_S = 150        # seconds without seeing the lobby (and no video playing) before the recovery ladder starts
+_last_ok = time.time()
+_recover_n = 0
+
+
+def touch_ok():
+    """Something useful happened (lobby seen, ad finished, ...): restart the stuck timer."""
+    global _last_ok, _recover_n
+    _last_ok, _recover_n = time.time(), 0
+
+
+def recover(img, stuck):
+    """Stuck on one page for too long (new ad / event / card nobody taught the bot): press whatever could lead out,
+    escalating - known exits, text buttons, other bright corner glyphs, BACK, closing the foreground app,
+    finally restarting the game - until the lobby is back. Payment-looking pages only get X / BACK."""
+    global _recover_n
+    _recover_n += 1
+    n = _recover_n
+    log(f"stuck for {stuck:.0f}s without the lobby: recovery step {n}")
+    f = focus()
+    if f and GAME_PKG not in f and not is_ad_any(f):
+        leave_other_app(f)
+        return
+    found = ocr(img)[0] or []
+    texts = " ".join(r[1] for r in found).upper()
+    pay = bool(re.search(r"[$₩€£]|W\s?\d|\d\s*원|UNLOCK|GOOGLE PLAY", texts))
+    # 1. exits we recognise
+    for xy in (find_close_x(img), adlearn.find_dialog_x(img), find_back_arrow(img), find_skip_text(img)):
+        if xy:
+            log(f"recovery: pressing the exit at {xy}")
+            tap(xy, 1.5)
+            return
+    hit = adlearn.find_known(img)
+    if hit and not adlearn.is_bad(img, hit[0], hit[1]):
+        log(f"recovery: pressing the known exit glyph {hit[2]} at {hit[:2]}")
+        tap(hit[:2], 1.5)
+        return
+    for b, t, _ in found:
+        tok = t.strip().upper().strip("!")
+        if tok in BUTTONS and not (tok == "FREE" and pay):
+            xy = (int(sum(q[0] for q in b) / 4), int(sum(q[1] for q in b) / 4))
+            log(f"recovery: pressing '{t}' at {xy}")
+            tap(xy, 1.5)
+            return
+    # 2. escalate with time
+    if stuck < 240:
+        cands = adlearn.candidates(img)
+        if cands and not pay and n % 2 == 1:
+            c = cands[(n // 2) % len(cands)]
+            log(f"recovery: trying the corner glyph at {c[:2]}")
+            tap(c[:2], 1.5)
+        elif n % 3 == 0 or pay:
+            log("recovery: BACK")
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(1.2)
+        else:
+            tap(UNKNOWN_TAPS[n % len(UNKNOWN_TAPS)], 1.2)
+    elif stuck < 330:
+        log("recovery: BACK twice")
+        for _ in range(2):
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(1.2)
+    else:
+        log("recovery: nothing worked - restarting the game")
+        adb("shell", "am", "force-stop", GAME_PKG)
+        time.sleep(2)
+        adb("shell", "monkey", "-p", GAME_PKG, "-c", "android.intent.category.LAUNCHER", "1")
+        time.sleep(25)
+        touch_ok()
+
+
+def is_ad_any(f):
+    """An ad window, also when it runs in another package (Facebook Audience Network and friends)."""
+    fl = f.lower()
+    return any(k in fl for k in AD_WORDS + ("audiencenetwork", "facebook.ads", "ads.internal"))
 
 
 def is_ad_focus(f):
@@ -649,6 +778,16 @@ def find_ad_x_glyph(img):
     """Any learned exit glyph (X, >>, ▶|, ...) in a top corner -> (x, y) or None."""
     hit = adlearn.find_known(img)
     return (hit[0], hit[1]) if hit else None
+
+
+def find_skip_text(img):
+    """A "Skip" / "Skip Ad" / "건너뛰기" button read as text in the top band of an ad (Meta / Audience Network videos draw
+    it as a pill with the word) -> centre or None."""
+    for b, t, _ in ocr(img[60:330, 0:1080])[0] or []:
+        tt = t.strip().upper()
+        if tt.startswith("SKIP") or tt in ("건너뛰기", "광고 건너뛰기", "CLOSE", "닫기"):
+            return int(sum(p[0] for p in b) / 4) + 40, int(sum(p[1] for p in b) / 4) + 60
+    return None
 
 
 def find_ad_close(img):
@@ -712,6 +851,13 @@ def ad_playing(img):
 
 
 def ride_ad(max_s=150):
+    try:
+        _ride_ad(max_s)
+    finally:
+        touch_ok()
+
+
+def _ride_ad(max_s=150):
     """An ad is in front: close it with a known exit button, or try the corner buttons one by one and learn
     (adlearn) which of them leads out, so the next ad with that button closes at once."""
     t0 = time.time()
@@ -730,7 +876,7 @@ def ride_ad(max_s=150):
                 if p:
                     log(f"ad: learned a new exit button -> {os.path.basename(p)}")
             break  # back in the game (the video closed itself or we closed it)
-        if GAME_PKG not in f and f:  # an ad opened the Play Store / a browser: come back, never install
+        if GAME_PKG not in f and f and not is_ad_any(f):  # an ad opened the Play Store / a browser: come back, never install
             log(f"ad: left the game ({f[-60:]}), going back")
             if pending and time.time() - pending[2] < 4.5:
                 p = adlearn.learn_bad(pending[0], pending[1])
@@ -765,9 +911,10 @@ def ride_ad(max_s=150):
             log(f"ad: dialog X at {dx}: closing it")
             tap(dx, 1.5)
             continue
-        hit = adlearn.find_known(img)
-        xy = (hit[0], hit[1]) if hit else find_ad_close_box(img)
-        if xy and adlearn.is_bad(img, xy[0], xy[1]):  # mute / info / store openers look a bit like an X
+        sk = find_skip_text(img)
+        hit = None if sk else adlearn.find_known(img)
+        xy = sk or ((hit[0], hit[1]) if hit else find_ad_close_box(img))
+        if xy and not sk and adlearn.is_bad(img, xy[0], xy[1]):  # mute / info / store openers look a bit like an X
             xy = None
         if xy and pressed.get((xy[0] // 50, xy[1] // 50), 0) >= 3:
             xy = None
@@ -870,8 +1017,7 @@ def front_card(first=True):
         scroll_to_start()
     last_key, still = None, 0
     for _ in range(14):
-        img = shot()
-        ps = prices(img)
+        img, ps = read_page()
         if ps and ps[0][1] < 90:      # the leftmost button is cut off at the edge: a card hides further left
             scroll_cards(-1, 250)
             continue
@@ -882,7 +1028,7 @@ def front_card(first=True):
         if still >= 2:                          # twice in a row: really the end of the strip
             return None
         last_key = key
-        scroll_cards(+1, 450)
+        scroll_cards(+1, 900)  # one page = the three visible cards
     return None
 
 
@@ -922,6 +1068,39 @@ def estimate_total_to_complete(price, crowns):
     return total
 
 
+PROGRESS_BOX = (250, 1630, 850, 1730)    # build panel: "21/45" = steps done / steps in the whole kingdom
+_kingdom_cost = 0.0      # estimated coins still needed to finish the whole kingdom (0 = unknown)
+_kc_time = 0.0
+_last_front_price = 0
+
+
+def kingdom_progress(img):
+    """(done, total) steps of the kingdom from the panel's progress bar, or None."""
+    for _, t in read(img, PROGRESS_BOX):
+        m = re.search(r"(\d+)\s*/\s*(\d+)", t)
+        if m and int(m.group(2)) >= int(m.group(1)):
+            return int(m.group(1)), int(m.group(2))
+    return None
+
+
+def scan_kingdom_cost():
+    """Walk the strip and add up what every unfinished card still needs (next price known exactly, later steps
+    estimated). This is the number that says whether the next KINGDOM is within reach."""
+    global _kingdom_cost, _kc_time
+    cards = scan_cards()
+    total = sum(estimate_total_to_complete(c["price"], c["crowns"]) for c in cards)
+    _kingdom_cost, _kc_time = total, time.time()
+    return total, len(cards)
+
+
+def green_price_buttons(img):
+    """x of the green price pills in the card strip, left to right, found by colour (when the price text is not read)."""
+    h = cv2.cvtColor(img[2110:2240], cv2.COLOR_BGR2HSV)
+    m = cv2.morphologyEx(cv2.inRange(h, (38, 150, 170), (85, 255, 255)), cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+    n, _, st, cent = cv2.connectedComponentsWithStats(m)
+    return sorted(int(cent[i][0]) for i in range(1, n) if st[i, 2] > 150 and 60 < st[i, 3] < 160)
+
+
 def build_all():
     """Build in the strip's own order: always the FRONT (leftmost) card, until it is complete (a finished
     building leaves the strip, so the next one becomes the front). If the front card is too expensive we
@@ -930,13 +1109,31 @@ def build_all():
     if not open_panel():
         log("build: could not open the build panel")
         return 0, None
-    bought, target_price, stalls = 0, None, 0
+    global _last_front_price
+    bought, target_price, stalls, recog_retry = 0, None, 0, 0
     for i in range(60):
         found = front_card(first=(i == 0))
         if found is None:
+            prog = kingdom_progress(shot())
+            if prog and prog[0] < prog[1] and recog_retry < 2:
+                # the bar says steps are still missing but no price was read: look again before giving up
+                recog_retry += 1
+                log(f"build: nothing recognised but progress is {prog[0]}/{prog[1]} - looking again")
+                time.sleep(1.0)
+                continue
+            if prog and prog[0] < prog[1] and _last_front_price:
+                gp = green_price_buttons(shot())
+                c0 = coins(shot())
+                if gp and c0 is not None and c0 >= 3 * _last_front_price:
+                    log(f"build: price text unreadable, coins {c0} are plenty: pressing the left-most green button x={gp[0]}")
+                    tap((gp[0], BUTTON_Y), 1.6)
+                    bought += 1
+                    continue
             log("build: no unfinished building in the strip (all done?)")
             break
+        recog_retry = 0
         img, (price, x) = found
+        _last_front_price = price
         cn = complete_now_button(img)
         now_t = time.time()
         _cn_times[:] = [t for t in _cn_times if now_t - t < 300]
@@ -962,6 +1159,11 @@ def build_all():
         if need_total > c:
             log(f"build: front card {price} ({crowns}/5 crowns) - saving up to finish it in one go "
                 f"(~{need_total:,.0f} total, have {c})")
+            if time.time() - _kc_time > 600:  # how far is the next KINGDOM? (remaining steps and coins)
+                total, n_cards = scan_kingdom_cost()
+                prog = kingdom_progress(shot())
+                log(f"kingdom: {n_cards} cards unfinished, ~{total:,.0f} coins to finish all (have {c}"
+                    + (f", steps {prog[0]}/{prog[1]}" if prog else "") + ")")
             break
         log(f"build front card {price} ({crowns}/5 crowns, coins {c})")
         tap((x, BUTTON_Y), 1.6)
@@ -1000,7 +1202,7 @@ def explore_sling():
 
 def aim_and_fire():
     """Hold the sling, track the face on a live 60 fps stream, release over the red target."""
-    if not sling.sling_visible(shot()):  # never start a pull anywhere but on the sling screen
+    if not is_sling(shot()):  # never start a pull anywhere but on the sling screen
         log("aim: sling screen not visible, skipping")
         return
     if os.environ.get("SLING_EXPLORE"):  # look around: pan the camera left/right, save every view, stop
@@ -1070,7 +1272,7 @@ def ensure_fired():
     """If the sling is still on screen after the release, shoot with a plain pull-down swipe."""
     for _ in range(2):
         time.sleep(1.2)
-        if not sling.sling_visible(shot()):
+        if not is_sling(shot()):
             return
         log("aim: sling still on screen, firing with a swipe")
         adb("shell", "input", "swipe", *map(str, SLING), "600")
@@ -1158,7 +1360,7 @@ def share_story_only():
 def kingdom_restored_fast(img):
     """True when this was the KINGDOM RESTORED screen and we acted (share once if the bonus bubble is there,
     otherwise straight to NEXT KINGDOM)."""
-    global _share_tries, _kingdom_changed
+    global _share_tries, _kingdom_changed, _kingdom_cost
     bonus = kingdom_restored_look(img)
     if bonus is None:
         return False
@@ -1175,13 +1377,14 @@ def kingdom_restored_fast(img):
     log("kingdom restored: NEXT KINGDOM")
     tap(NEXT_BTN, 2.0)
     _kingdom_changed = True
+    _kingdom_cost = 0.0
     _share_tries = 0
     return True
 
 
 def kingdom_done(found):
     """KINGDOM RESTORED: SHARE first (it gives +10 rolls), back out of the share sheet, then NEXT KINGDOM."""
-    global _share_tries
+    global _share_tries, _kingdom_cost
     share = find_text(found, "SHARE")
     # the "+10 (dice)" bubble under SHARE is there only until the share was posted: no bubble -> straight to NEXT KINGDOM
     bonus = any(re.match(r"\+\s*\d+", r[1].strip()) for r in found)
@@ -1213,6 +1416,7 @@ def kingdom_done(found):
         tap(nxt, 4)
         global _kingdom_changed
         _kingdom_changed = True  # new kingdom -> new prices: forget the old cheapest price
+        _kingdom_cost = 0.0
         _share_tries = 0
 
 
@@ -1295,12 +1499,12 @@ def run_ads_only(max_ads):
             tap(ba, 2.0)
             continue
         f = focus()
-        if f and (is_ad_focus(f) or GAME_PKG not in f):  # an ad (or another app) is already in front
-            if GAME_PKG not in f:
+        if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is already in front
+            if GAME_PKG not in f and not is_ad_any(f):
                 log(f"another app has focus ({f[-50:]}): leaving it")
                 leave_other_app(f)
             else:
-                xy = find_ad_close(img)
+                xy = find_skip_text(img) or find_ad_close(img)
                 if xy and adlearn.is_bad(img, xy[0], xy[1]):
                     xy = None
                 if xy:
@@ -1332,12 +1536,14 @@ def main():
         run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
         return
     max_rolls = int(sys.argv[1]) if len(sys.argv) > 1 else 20
+    touch_ok()
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
     cur_step = None  # xN step we believe is set; reset after popups / waits
     stall_since = time.time()
     last_was_roll = False
     busy_n = 0
+    btn_hist = {}   # (button, x, y) -> (times pressed, last time): a button that never works is left alone
     steal_n = 0
     pinball_n = 0
     last_roll_t = 0.0
@@ -1349,6 +1555,11 @@ def main():
         img = shot()
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
             ride_ad()
+            continue
+        if roll_visible(img) or roll_busy(img) or ad_playing(img):
+            touch_ok()
+        elif time.time() - _last_ok > STUCK_S:
+            recover(img, time.time() - _last_ok)
             continue
         ba = find_back_arrow(img)
         if ba:  # an event page / mini-game is open: leave through its back arrow
@@ -1385,7 +1596,7 @@ def main():
             e = None  # an overlay covers ROLL: treat as popup
         if e is None:
             cur_step = None
-            if sling.sling_visible(img):  # the sling screen has no text: recognise it by its strap
+            if is_sling(img):  # the sling screen has no text: recognise it by its strap
                 log("sling screen detected: aim")
                 aim_and_fire()
                 time.sleep(2.5)
@@ -1409,12 +1620,12 @@ def main():
             if kingdom_restored_fast(img):
                 continue
             f = focus()
-            if f and (is_ad_focus(f) or GAME_PKG not in f):  # an ad (or another app) is in front
-                if GAME_PKG not in f:
+            if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is in front
+                if GAME_PKG not in f and not is_ad_any(f):
                     log(f"another app has focus ({f[-50:]}): leaving it")
                     leave_other_app(f)
                 else:
-                    xy = find_ad_close(img)
+                    xy = find_skip_text(img) or find_ad_close(img)
                     if xy and adlearn.is_bad(img, xy[0], xy[1]):
                         xy = None
                     if xy:
@@ -1448,11 +1659,24 @@ def main():
                 hx = None
             if hx is not None:
                 continue
+            all_txt = " ".join(r[1] for r in found).upper()
+            locked = "UNLOCK" in all_txt or bool(re.search(r"[$₩€£]|W\s?\d", all_txt))  # offer pages: chained FREE, prices
+            now_b = time.time()
+            for k in [k for k, v in btn_hist.items() if now_b - v[1] > 90]:
+                del btn_hist[k]
             for b, t, _ in found:
-                if t.strip().upper().strip("!") in BUTTONS:
+                tok = t.strip().upper().strip("!")
+                if tok in BUTTONS:
                     cx = int(sum(p[0] for p in b) / 4)
                     cy = int(sum(p[1] for p in b) / 4)
-                    log(f"button '{t}' at {cx},{cy}")
+                    if tok == "FREE" and locked:
+                        continue  # a FREE that sits behind a padlock / on a paid offer page is not a gift
+                    key = (tok, cx // 50, cy // 50)
+                    n_pressed = btn_hist.get(key, (0, 0))[0]
+                    if n_pressed >= (3 if tok == "FREE" else 6):
+                        continue  # pressed again and again with no effect: leave it, close the page with its X
+                    btn_hist[key] = (n_pressed + 1, now_b)
+                    log(f"button '{t}' at {cx},{cy}" + (f" (press {n_pressed + 1}/3)" if tok == "FREE" or n_pressed else ""))
                     tap((cx, cy), 1.0)
                     break
             else:
@@ -1553,7 +1777,7 @@ def main():
                 tap(STEAL, 1.0)  # just keep touching STEAL
                 continue
             if re.search(r"\w+['’`]S\s*KINGDOM", texts) and "CARDS" not in texts:
-                if sling.sling_visible(img):  # already on the sling screen (e.g. after a retry)
+                if is_sling(img):  # already on the sling screen (e.g. after a retry)
                     aim_and_fire()
                     time.sleep(2.5)
                     continue
@@ -1565,7 +1789,7 @@ def main():
                 tap(spot, 1.5)
                 opened = False
                 for _ in range(10):  # the camera swoops to the sling: it takes 4-6 s
-                    if sling.sling_visible(shot()):
+                    if is_sling(shot()):
                         opened = True
                         break
                     time.sleep(0.6)
@@ -1615,11 +1839,15 @@ def main():
             # while there's still dice or coins to use, just keep rolling/building.
             # priority 1: 500,000+ coins -> upgrade the kingdom, front card first (crowns raise attack/jackpot payouts)
             since_check += 1
-            if since_check >= 4 and not free_mode:
+            if since_check >= (2 if _kingdom_cost else 4) and not free_mode:
                 since_check = 0
                 cc = coins(img)
-                if cc is not None and cc >= BUILD_AT:
-                    log(f"coins {cc} >= {BUILD_AT}: upgrading the kingdom")
+                # the next KINGDOM within reach (coins cover everything still unbuilt): upgrades come first,
+                # whatever the 500k rule says
+                finish = bool(_kingdom_cost) and cc is not None and cc >= _kingdom_cost
+                if cc is not None and (cc >= BUILD_AT or finish):
+                    log(f"coins {cc} cover the whole kingdom (~{_kingdom_cost:,.0f}): upgrades first" if finish
+                        else f"coins {cc} >= {BUILD_AT}: upgrading the kingdom")
                     n, _ = build_all()
                     if n:
                         cur_step = None

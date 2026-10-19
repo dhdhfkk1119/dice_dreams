@@ -67,16 +67,16 @@ def find_known(img, thr=THR):
         return None
     _, x, y, name = best
     w = img.shape[1]
-    if 0.11 * w < x < 0.89 * w:  # only corners count (scale-invariant: works in portrait or a rotated/landscape ad)
+    if 0.11 * w < x < 0.85 * w:  # only corners count (scale-invariant: works in portrait or a rotated/landscape ad)
         return None
     return x, y, name
 
 
 def candidates(img, tried=()):
     """Compact bright glyphs in the top corners, right corner first: [(x, y, w, h)], skipping the ones tried."""
-    lo, hi = 60, 330
+    lo, hi = 40, 520        # top band, where ads put their buttons (a little lower on some layouts)
     m = mask_of(img, lo, hi, 190)
-    m[:, 300:780] = 0
+    m[:, 360:720] = 0
     d = cv2.dilate(m, np.ones((9, 9), np.uint8))
     n, _, stats, cent = cv2.connectedComponentsWithStats(d, connectivity=8)
     out = []
@@ -91,7 +91,7 @@ def candidates(img, tried=()):
         cx, cy = int(cent[i][0]), int(cent[i][1]) + lo
         if any(abs(cx - tx) < 40 and abs(cy - ty) < 40 for tx, ty in tried):
             continue
-        right = 0 if cx > 780 else 1
+        right = 0 if cx > 720 else 1
         out.append((right, abs(cy - 180), cx, cy, w, h))
     out.sort()
     cands = [(cx, cy, w, h) for _, _, cx, cy, w, h in out]
