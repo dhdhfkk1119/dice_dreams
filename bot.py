@@ -155,7 +155,11 @@ def roll_busy(img):
     b, g, r = c[..., 0], c[..., 1], c[..., 2]
     dark = ((r > 90) & (r < 190) & (g < 70) & (b < 70)).mean()
     top = cv2.cvtColor(img[150:240, 200:500], cv2.COLOR_BGR2HSV)
-    return dark > 0.5 and cv2.inRange(top, (95, 40, 190), (112, 200, 255)).mean() / 255 > 0.15
+    # the lobby's own energy bar must be there too (blue strip at the bottom): the attack / kingdom pages have dark
+    # maroon trees and a light-blue name banner that fooled the two tests above
+    row = img[2200, 300:800].astype(int)
+    bar = float(((row[:, 0] > 120) & (row[:, 2] < 150) & (row[:, 0] - row[:, 2] > 40)).mean())
+    return dark > 0.5 and cv2.inRange(top, (95, 40, 190), (112, 200, 255)).mean() / 255 > 0.15 and bar > 0.5
 
 
 def roll_visible(img):
@@ -486,14 +490,14 @@ def set_multiplier(target):
 
 
 def parse_price(t):
-    """'17,500' -> 17500, '104K' -> 104000, '1.2M' -> 1200000 (big prices are abbreviated on the buttons)."""
+    """'17,500' -> 17500, '104K' -> 104000, '1.2M' -> 1200000, '2.5B' -> 2500000000 (big prices are abbreviated)."""
     t = t.strip().replace(" ", "")
     if re.fullmatch(r"\d{1,3}(,\d{3})+", t):
         return num(t)
-    m = re.fullmatch(r"(\d{1,3}(?:[.,]\d{1,2})?)([KkMm])", t)
+    m = re.fullmatch(r"(\d{1,3}(?:[.,]\d{1,3})?)([KkMmBbGg])", t)
     if m:
         v = float(m.group(1).replace(",", "."))
-        return int(round(v * (1000 if m.group(2) in "Kk" else 1_000_000)))
+        return int(round(v * {"k": 1e3, "m": 1e6, "b": 1e9, "g": 1e9}[m.group(2).lower()]))
     return None
 
 
@@ -1269,6 +1273,12 @@ def build_all():
         return 0, None
     global _last_front_price
     bought, target_price, stalls, recog_retry = 0, None, 0, 0
+    if time.time() - _kc_time > 600:  # how much does the whole kingdom still cost? (decides "money is plentiful")
+        total, n_cards = scan_kingdom_cost()
+        prog = kingdom_progress(shot())
+        log(f"kingdom: {n_cards} cards unfinished, ~{total:,.0f} coins to finish all"
+            + (f" (steps {prog[0]}/{prog[1]})" if prog else ""))
+        scroll_to_start()
     for i in range(60):
         found = front_card(first=(i == 0))
         if found is None:
@@ -1293,6 +1303,9 @@ def build_all():
         img, (price, x) = found
         _last_front_price = price
         cn = complete_now_button(img)
+        c_now = coins(img)
+        if cn and c_now is not None and _kingdom_cost and c_now >= _kingdom_cost:
+            cn = None  # plenty of coins for the whole kingdom: buying is quicker than watching a video
         now_t = time.time()
         _cn_times[:] = [t for t in _cn_times if now_t - t < 300]
         if cn and len(_cn_times) >= 3:  # three tries in 5 min and the button is still there: no video available now
@@ -1701,6 +1714,7 @@ def main():
     stall_since = time.time()
     last_was_roll = False
     busy_n = 0
+    _last_coins = 0
     btn_hist = {}   # (button, x, y) -> (times pressed, last time): a button that never works is left alone
     steal_n = 0
     pinball_n = 0
@@ -1997,9 +2011,12 @@ def main():
             # while there's still dice or coins to use, just keep rolling/building.
             # priority 1: 500,000+ coins -> upgrade the kingdom, front card first (crowns raise attack/jackpot payouts)
             since_check += 1
-            if since_check >= (2 if _kingdom_cost else 4) and not free_mode:
+            rich = bool(_kingdom_cost) and (_last_coins or 0) >= _kingdom_cost
+            if since_check >= (1 if rich else (2 if _kingdom_cost else 4)) and not free_mode:
                 since_check = 0
                 cc = coins(img)
+                if cc is not None:
+                    _last_coins = cc
                 # the next KINGDOM within reach (coins cover everything still unbuilt): upgrades come first,
                 # whatever the 500k rule says
                 finish = bool(_kingdom_cost) and cc is not None and cc >= _kingdom_cost
