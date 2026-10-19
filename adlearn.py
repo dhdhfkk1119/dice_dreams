@@ -66,7 +66,8 @@ def find_known(img, thr=THR):
     if best is None:
         return None
     _, x, y, name = best
-    if 120 < x < 960:  # only corners count
+    w = img.shape[1]
+    if 0.11 * w < x < 0.89 * w:  # only corners count (scale-invariant: works in portrait or a rotated/landscape ad)
         return None
     return x, y, name
 

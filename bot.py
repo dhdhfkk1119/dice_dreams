@@ -79,9 +79,9 @@ def shot(name=None):
             if fmt == 1 and len(raw) == 16 + w * h * 4:
                 img = np.ascontiguousarray(np.frombuffer(raw, np.uint8, offset=16).reshape(h, w, 4)[:, :, 2::-1])
         if img is not None:
-            if img.shape[0] < img.shape[1]:  # some ads rotate the screen to landscape: rotate back to portrait
-                img = np.ascontiguousarray(np.rot90(img))  # so every fixed pixel coordinate below stays valid
-            return img
+            return img  # may be landscape (some ads rotate the screen): callers must check landscape(img)
+            # before using any fixed pixel coordinate on it - rotating the array here would NOT make taps
+            # computed from it land correctly, since the real device is still physically in that orientation
         if waited % 30 == 0:
             log("no screenshot: phone/adb disconnected? waiting...")
         if waited and waited % 60 == 0:
@@ -89,6 +89,12 @@ def shot(name=None):
             subprocess.run([ADB, "start-server"], capture_output=True)
         waited += 5
         time.sleep(5)
+
+
+def landscape(img):
+    """True while the screen is rotated (some ads do this): every fixed pixel coordinate in this file assumes
+    portrait, so callers must skip tapping anything computed from a landscape frame and just wait it out."""
+    return img.shape[0] < img.shape[1]
 
 
 POST_SHARE = True   # always share a restored kingdom to the story (+10 rolls), as the user asked
@@ -733,6 +739,18 @@ def ride_ad(max_s=150):
             leave_other_app(f)
             continue
         img = shot()
+        if landscape(img):
+            # a rotated ad: every *fixed* portrait coordinate below would tap the wrong spot, so only act on
+            # a glyph actually recognised in this frame (X / skip />>  / known exit) - never guess a corner.
+            dx = adlearn.find_dialog_x(img)
+            hit = adlearn.find_known(img)
+            xy = dx or ((hit[0], hit[1]) if hit else None)
+            if xy and not adlearn.is_bad(img, xy[0], xy[1]):
+                log(f"ad: closing the ad at {xy}" + (f" ({hit[2]})" if hit and xy == (hit[0], hit[1]) else "") + " [landscape]")
+                tap(xy, 2.5)
+            else:
+                time.sleep(1)
+            continue
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
             time.sleep(1.5)
@@ -1268,6 +1286,9 @@ def run_ads_only(max_ads):
     log(f"ads-only mode: watching up to {max_ads} free videos")
     while watched < max_ads:
         img = shot()
+        if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
+            ride_ad()
+            continue
         ba = find_back_arrow(img)
         if ba:  # a stray event page: leave it so the lobby (and its video bubble) comes back
             log(f"back arrow at {ba}: leaving this page")
@@ -1326,6 +1347,9 @@ def main():
     refilling = False  # True while watching ads back-to-back after money+energy both ran out, until any energy is back
     while rolls < max_rolls:
         img = shot()
+        if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
+            ride_ad()
+            continue
         ba = find_back_arrow(img)
         if ba:  # an event page / mini-game is open: leave through its back arrow
             log(f"back arrow at {ba}: leaving this page")
