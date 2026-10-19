@@ -683,6 +683,17 @@ def watch_ad(img=None, max_s=150):
     return True
 
 
+def landing_page_bar(img):
+    """A clicked-through ad landing page (opened in its own in-app browser) shows a light toolbar near the
+    top (back arrow + X + title) - the opposite colours of the ad's own close buttons (dark glyphs on white,
+    not a white glyph on a dark corner button), so the usual X-hunting never finds it. BACK always backs out
+    of it safely (never installs or buys anything), so there is no need to locate the X itself."""
+    band = img[130:180, 0:900].astype(int)
+    light = float((band.min(axis=2) > 225).mean())
+    dark = float((band.max(axis=2) < 90).mean())  # the '<' and 'X' glyphs themselves
+    return light > 0.6 and 0.01 < dark < 0.25
+
+
 def ad_playing(img):
     """Video ads draw a thin progress bar on the very bottom row: white = played, grey (168,148,148) = to go.
     True while the video has not reached its end (the bar disappears or is full when it is done)."""
@@ -724,6 +735,11 @@ def ride_ad(max_s=150):
         img = shot()
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
+            time.sleep(1.5)
+            continue
+        if landing_page_bar(img):  # the ad was clicked through to its landing page: BACK out, don't hunt for its X
+            log("ad: landing page opened (clicked through) - BACK to the ad")
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
             time.sleep(1.5)
             continue
         dx = adlearn.find_dialog_x(img)
@@ -1243,8 +1259,57 @@ def claim_weekly():
     return claimed
 
 
+def run_ads_only(max_ads):
+    """CLI `python bot.py ads N`: ignore rolling/building/minigames entirely (none of those can even trigger
+    without a ROLL tap) and just watch up to N free videos in a row, handling only what can actually stand
+    between one video and the next: a stray event page, an ad/app already in front, a popup, or a leftover
+    share sheet from a kingdom that just finished."""
+    watched = 0
+    log(f"ads-only mode: watching up to {max_ads} free videos")
+    while watched < max_ads:
+        img = shot()
+        ba = find_back_arrow(img)
+        if ba:  # a stray event page: leave it so the lobby (and its video bubble) comes back
+            log(f"back arrow at {ba}: leaving this page")
+            tap(ba, 2.0)
+            continue
+        f = focus()
+        if f and (is_ad_focus(f) or GAME_PKG not in f):  # an ad (or another app) is already in front
+            if GAME_PKG not in f:
+                log(f"another app has focus ({f[-50:]}): leaving it")
+                leave_other_app(f)
+            else:
+                xy = find_ad_close(img)
+                if xy and adlearn.is_bad(img, xy[0], xy[1]):
+                    xy = None
+                if xy:
+                    log(f"ad on screen: closing at {xy}")
+                    tap(xy, 2.5)
+                else:
+                    log("ad on screen without X: waiting / poking")
+                    ride_ad()
+            continue
+        if find_close_x(img) is not None:  # a popup sits on top of the board
+            tap(find_close_x(img), 1.2)
+            continue
+        if fb_sheet(img):  # a kingdom-restored share sheet left open
+            share_story_only()
+            continue
+        if time.time() - _last_ad > 20 and watch_ad(img):
+            watched += 1
+            log(f"ads mode: {watched}/{max_ads} watched")
+            continue
+        time.sleep(2)
+    log(f"ads-only mode: done, watched {watched} ads")
+
+
 def main():
     require_phone()
+    # `python bot.py N` plays normally for up to N rolls; `python bot.py ads N` ignores rolling/building and
+    # just watches up to N free videos back-to-back (see run_ads_only, a separate leaner loop).
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "ads":
+        run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
+        return
     max_rolls = int(sys.argv[1]) if len(sys.argv) > 1 else 20
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
