@@ -6,6 +6,8 @@ Usage: python bot.py [max_rolls]
 """
 import os, re, subprocess, sys, time
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Always talk to the real phone, never to BlueStacks (emulator-5554) or any other device.
 # adb reads ANDROID_SERIAL, so every adb call below (also in stream.py / aim_live.py) obeys it.
 PHONE_SERIAL = "R3KL20CWEMT"
@@ -14,11 +16,12 @@ os.environ["ANDROID_SERIAL"] = PHONE_SERIAL
 import adlearn
 import aim_live
 import cv2
+import cvio
 import numpy as np
 import sling
 from rapidocr_onnxruntime import RapidOCR
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
+ADB = os.path.join(BASE_DIR, "tools", "platform-tools", "adb.exe")
 
 
 def require_phone():
@@ -26,7 +29,7 @@ def require_phone():
     if not re.search(rf"^{PHONE_SERIAL}\s+device\b", out, re.M):
         print(f"Phone {PHONE_SERIAL} is not connected (adb devices below). Not touching any other device.\n{out}")
         sys.exit(2)
-OUT = r"D:\dice_dreams\shots"
+OUT = os.path.join(BASE_DIR, "shots")
 ROLL = (538, 1977)
 HAMMER = (948, 2211)
 SCENE = (540, 500)        # empty scene area: closes the build panel
@@ -44,7 +47,8 @@ SAFE_TAPS = [(540, 1000), (540, 1250), (540, 90), (BACK_BTN), (200, 1300), (540,
 UNKNOWN_TAPS = [(900, 1000), (540, 1000), (900, 600), (540, 1250), (900, 1400), (540, 700), (200, 1000)]  # right side first
 ROLL_BOX = (400, 1830, 680, 2100)
 MULT_BTN = (763, 1915)
-MULT_BOX = (680, 1840, 860, 1990)
+MULT_BOX = (680, 1878, 860, 1960)  # the xN badge's own number only (kept clear of MAX_BOX above it)
+MAX_BOX = (670, 1800, 870, 1878)   # the "MAX xN" bubble: the highest multiplier on offer right now
 STEAL = (540, 1919)
 TARGET = (532, 819)       # attack: castle pin
 SLING = (540, 1640, 540, 2050)  # pull straight down -> bullseye (tested: x1.5 bullseye)
@@ -75,6 +79,8 @@ def shot(name=None):
             if fmt == 1 and len(raw) == 16 + w * h * 4:
                 img = np.ascontiguousarray(np.frombuffer(raw, np.uint8, offset=16).reshape(h, w, 4)[:, :, 2::-1])
         if img is not None:
+            if img.shape[0] < img.shape[1]:  # some ads rotate the screen to landscape: rotate back to portrait
+                img = np.ascontiguousarray(np.rot90(img))  # so every fixed pixel coordinate below stays valid
             return img
         if waited % 30 == 0:
             log("no screenshot: phone/adb disconnected? waiting...")
@@ -230,7 +236,7 @@ def energy(img):
     return n + (extra or 0)
 
 
-PIN_TPL = cv2.imread(r"D:\dice_dreams\pin_tpl.png")  # the blue disc + red crosshair of an attack pin
+PIN_TPL = cvio.imread(os.path.join(BASE_DIR, "pin_tpl.png"))  # the blue disc + red crosshair of an attack pin
 
 
 def find_pins(img, thr=0.62):
@@ -313,12 +319,32 @@ def multiplier(img=None):
         if img is None or attempt:
             time.sleep(0.4)
             img = shot()
-        x0, y0, x1, y1 = MULT_BOX
-        crop = cv2.resize(img[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
-        for r in ocr(crop)[0] or []:
-            m = re.search(r"[xX×]\s*(\d+)", r[1])
-            if m:
-                return int(m.group(1))
+        n = read_badge_num(img)
+        if n is not None:
+            return n
+    return None
+
+
+def read_badge_num(img):
+    """OCR the xN badge once (no retry) for its exact number; None if unreadable (e.g. mid-animation)."""
+    x0, y0, x1, y1 = MULT_BOX
+    crop = cv2.resize(img[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+    for r in ocr(crop)[0] or []:
+        m = re.search(r"[xX×]\s*(\d+)", r[1])
+        if m:
+            return int(m.group(1))
+    return None
+
+
+def read_max_mult(img):
+    """OCR the 'MAX xN' bubble above the badge: the highest multiplier on offer right now (can exceed the
+    old x1/x2/x3/x5/x8 cycle, e.g. x10), or None when the bubble isn't shown."""
+    x0, y0, x1, y1 = MAX_BOX
+    crop = cv2.resize(img[y0:y1, x0:x1], None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+    for r in ocr(crop)[0] or []:
+        m = re.search(r"[xX×]\s*(\d+)", r[1])
+        if m:
+            return int(m.group(1))
     return None
 
 
@@ -374,7 +400,7 @@ def discover_steps():
         img = shot()
         if not roll_visible(img) or find_close_x(img) is not None:
             return STEPS
-        s = badge_step(img)
+        s = badge_value(img)
         if s is None:
             return STEPS
         if s in seen:
@@ -382,7 +408,7 @@ def discover_steps():
         seen.append(s)
         tap(MULT_BTN, 0.9)
     if seen:
-        STEPS = sorted(set(seen) | {1, 2, 3})  # x1..x3 always exist; x5 is the optional extra
+        STEPS = sorted(set(seen) | {1, 2, 3})  # x1..x3 always exist; x5/x8/x10 are the optional extras
     _steps_checked = time.time()
     log(f"multiplier steps available: {STEPS}")
     return STEPS
@@ -394,17 +420,25 @@ def forget_steps():
 
 
 def badge_step(img):
-    """Which xN the badge shows, from its colour: orange=x5, silver=x1, blue=x2, green=x3."""
+    """Which xN the badge shows, from its colour: orange=x5, silver=x1, blue=x2, green=x3.
+    Red (h<=7 or h>=170) covers both x8 and x10 -> returns 8 as a guess; use badge_value() when the
+    distinction matters."""
     h, s, v = cv2.cvtColor(np.uint8([[badge_color(img)]]), cv2.COLOR_BGR2HSV)[0, 0]
     if v < 120:  # dimmed by a popup / overlay: cannot tell
         return None
     if h <= 7 or h >= 170:
-        return 8  # red
+        return 8  # red (x8 or x10 - ambiguous by colour alone)
     if h < 30:
         return 5  # orange
     if s < 80:
         return 1
     return 3 if h < 85 else 2
+
+
+def badge_value(img):
+    """Current xN: OCR'd number when readable (accurate even for x8 vs x10), else the colour guess."""
+    n = read_badge_num(img)
+    return n if n is not None else badge_step(img)
 
 
 def set_multiplier(target):
@@ -414,7 +448,7 @@ def set_multiplier(target):
     img = shot()
     if not roll_visible(img) or find_close_x(img) is not None:
         return False
-    cur = badge_step(img)
+    cur = badge_value(img)
     if cur == target:
         return True
     if cur in STEPS and target in STEPS:
@@ -423,17 +457,17 @@ def set_multiplier(target):
             tap(MULT_BTN, 0.45)
         time.sleep(0.3)
         img = shot()
-        if roll_visible(img) and badge_step(img) == target:
+        if roll_visible(img) and badge_value(img) == target:
             return True
     for _ in range(len(STEPS) + 2):  # fallback: one press at a time, looking after each
         img = shot()
         if not roll_visible(img) or find_close_x(img) is not None:
             return False
-        if badge_step(img) == target:
+        if badge_value(img) == target:
             return True
         tap(MULT_BTN, 0.7)
     img = shot()
-    return roll_visible(img) and badge_step(img) == target
+    return roll_visible(img) and badge_value(img) == target
 
 
 def parse_price(t):
@@ -537,16 +571,14 @@ def go_to_card(card, coins_now):
     return False
 
 
-VID_TPL = cv2.imread(r"D:\dice_dreams\vid_tpl84.png")  # the purple clapper + dice bubble: "watch a video for dice"
+VID_TPL = cvio.imread(os.path.join(BASE_DIR, "vid_tpl84.png"))  # the purple clapper + dice bubble: "watch a video for dice"
 GAME_PKG = "com.superplaystudios.dicedreams"
 _last_ad = 0.0
-ADS_PER_BATCH = 10      # watch at most this many free videos in a row, then just play
-_ads_locked = False     # after a batch: no videos until the dice are used up (energy 0), then the next batch
-_ads_in_batch = 0
+_ads_in_batch = 0       # videos watched in the current refill (reset when a new refill starts; just for logging)
 _ads_resume = 0.0       # (kept for the one-hour stall fallback)
 
 
-VID_TPL_B = cv2.imread(r"D:\dice_dreams\vid_tpl_b.png")   # the same bubble on a pale background (desert kingdom)
+VID_TPL_B = cvio.imread(os.path.join(BASE_DIR, "vid_tpl_b.png"))   # the same bubble on a pale background (desert kingdom)
 
 
 def find_video_bubble(img, thr=0.62):
@@ -563,7 +595,7 @@ def find_video_bubble(img, thr=0.62):
     return best[1:] if best else None
 
 
-BACK_ARROW = cv2.imread(os.path.join(os.path.dirname(os.path.abspath(__file__)), "backarrow_mask.png"), 0)  # light-blue "<-" of full-screen event pages
+BACK_ARROW = cvio.imread(os.path.join(BASE_DIR, "backarrow_mask.png"), 0)  # light-blue "<-" of full-screen event pages
 
 
 def find_back_arrow(img, thr=0.7):
@@ -634,10 +666,9 @@ def find_ad_close_box(img):
 
 
 def watch_ad(img=None, max_s=150):
-    """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game."""
-    global _last_ad, _ads_in_batch, _ads_locked
-    if _ads_locked:
-        return False  # batch done: play until the dice are used up
+    """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game.
+    No cap here: the caller (main loop) stops asking for more as soon as any energy is back."""
+    global _last_ad, _ads_in_batch
     img = shot() if img is None else img
     pos = find_video_bubble(img)
     if pos is None or find_close_x(img) is not None or not roll_visible(img):
@@ -647,10 +678,7 @@ def watch_ad(img=None, max_s=150):
     if not is_ad_focus(focus()):  # the bubble tap did not open a video: not an ad, do not count it
         return True
     _ads_in_batch += 1
-    log(f"ad: watching a free video #{_ads_in_batch}/{ADS_PER_BATCH} (bubble at {pos})")
-    if _ads_in_batch >= ADS_PER_BATCH:
-        _ads_locked = True
-        log(f"ad: batch of {ADS_PER_BATCH} done: play until the dice are used up, then the next batch")
+    log(f"ad: watching a free video #{_ads_in_batch} (refilling to 50 energy, bubble at {pos})")
     ride_ad()
     return True
 
@@ -658,6 +686,8 @@ def watch_ad(img=None, max_s=150):
 def ad_playing(img):
     """Video ads draw a thin progress bar on the very bottom row: white = played, grey (168,148,148) = to go.
     True while the video has not reached its end (the bar disappears or is full when it is done)."""
+    if img.shape[0] <= 2334:  # some ads rotate the screen to landscape: no portrait row to read yet
+        return True  # assume still playing; re-checked every loop, so this self-corrects once it rotates back
     row = img[2334].astype(int)
     grey = (np.abs(row - np.array([168, 148, 148])).max(axis=1) < 14).mean()
     white = (row.min(axis=1) > 235).mean()
@@ -822,7 +852,8 @@ def front_card(first=True):
     return None
 
 
-COMPLETE_BOX = (0, 1450, 1080, 1700)    # build panel: the green "FREE (video) COMPLETE NOW" bubble hovers above the front unfinished card (its x moves)
+COMPLETE_BOX = (0, 1400, 1080, 1700)    # build panel: the "KINGDOM n" tab (y~1419-1452) or the green "FREE
+# (video) COMPLETE NOW" bubble hovers above the front unfinished card (its x moves)
 
 
 _watch_times = []  # when a popup WATCH button was pressed lately
@@ -838,6 +869,23 @@ def complete_now_button(img):
             if "COMPLETE" in t or "OMPLETE" in t:
                 return int(x), int(y) + 20
     return None
+
+
+# price ratio from one crown step to the next (0->1, 1->2, 2->3, 3->4), measured across several buildings:
+# fairly stable regardless of the kingdom's overall price level
+STEP_RATIOS = [1.30, 1.31, 1.47, 1.68]
+
+
+def estimate_total_to_complete(price, crowns):
+    """Coins needed to finish the front card in one go: `price` (the next purchase, known exactly) plus the
+    remaining steps up to 5/5, estimated from the step-to-step ratios above (re-estimated after every real
+    purchase, so an off guess for a later step never compounds)."""
+    total, p = 0.0, float(price)
+    for k in range(crowns, 5):
+        total += p
+        if k < 4:
+            p *= STEP_RATIOS[k]
+    return total
 
 
 def build_all():
@@ -875,9 +923,11 @@ def build_all():
             tap(find_close_x(img), 1.0)
             continue
         crowns = crowns_filled(img, x)
-        target_price = price
-        if price > c:
-            log(f"build: front card {price} ({crowns}/5 crowns) too expensive, saving up (coins {c})")
+        need_total = estimate_total_to_complete(price, crowns)
+        target_price = need_total
+        if need_total > c:
+            log(f"build: front card {price} ({crowns}/5 crowns) - saving up to finish it in one go "
+                f"(~{need_total:,.0f} total, have {c})")
             break
         log(f"build front card {price} ({crowns}/5 crowns, coins {c})")
         tap((x, BUTTON_Y), 1.6)
@@ -1208,6 +1258,7 @@ def main():
     popup_after_roll = 0
     no_energy_until = 0.0
     need = 0  # coins needed before trying to build again
+    refilling = False  # True while watching ads back-to-back after money+energy both ran out, until any energy is back
     while rolls < max_rolls:
         img = shot()
         ba = find_back_arrow(img)
@@ -1462,16 +1513,18 @@ def main():
                 tap(UNKNOWN_TAPS[unknown % len(UNKNOWN_TAPS)], 1.0)
             continue
         unknown = 0
+        if refilling and e >= 1:
+            refilling = False
+            log(f"energy back to {e}: back to playing")
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
             if find_close_x(img) is not None:  # a popup sits on top of the board: never tap ROLL/xN
                 lock_buy_zone()
                 tap(find_close_x(img), 1.2)
                 continue
-            # priority 1: a free video whenever its bubble is up (pays dice and coins)
-            if time.time() - _last_ad > 20 and watch_ad(img):
-                continue
-            # priority 2: 500,000+ coins -> upgrade the kingdom, front card first (crowns raise attack/jackpot payouts)
+            # ads are watched only once energy and money are both spent (see the e < 1 branch below);
+            # while there's still dice or coins to use, just keep rolling/building.
+            # priority 1: 500,000+ coins -> upgrade the kingdom, front card first (crowns raise attack/jackpot payouts)
             since_check += 1
             if since_check >= 4 and not free_mode:
                 since_check = 0
@@ -1483,36 +1536,44 @@ def main():
                         cur_step = None
                         continue
             if not free_mode:
-                # highest xN the energy allows; the steps on offer change (x5 only sometimes), so re-measure
-                if time.time() - _steps_checked > 1800:  # the steps on offer change slowly (x5 only sometimes)
-                    discover_steps()
-                want = best_step(e)
-                if cur_step != want:
-                    ok = set_multiplier(want)
-                    shown = badge_step(shot())
-                    if ok:
-                        cur_step = want
-                        log(f"multiplier -> x{want}")
-                    elif shown is not None and shown <= e:
-                        # could not reach the ideal step, but the one on screen is affordable: ROLL anyway,
-                        # energy comes first (never sit idle with energy left)
-                        cur_step = shown
-                        log(f"multiplier x{want} unreachable, rolling at x{shown}")
-                    else:
-                        # the shown step costs more energy than we have (would open a "buy rolls" offer)
-                        # or the board is covered: re-check the screen instead of rolling
-                        cur_step = None
-                        forget_steps()  # the cycle may have changed: measure it again next time
-                        log("multiplier unknown/too high, re-checking")
-                        time.sleep(1)
-                        continue
+                # the "MAX xN" bubble names the best multiplier on offer right now: match it when it's shown.
+                # When it isn't shown at all, leave the multiplier alone and just roll.
+                mx = read_max_mult(img)
+                if mx:
+                    if time.time() - _steps_checked > 1800:  # the steps on offer change slowly (x5 only sometimes)
+                        discover_steps()
+                    want = mx if mx <= max(1, e) else best_step(e)
+                    if cur_step != want:
+                        ok = set_multiplier(want)
+                        shown = badge_value(shot())
+                        if ok:
+                            cur_step = want
+                            log(f"multiplier -> x{want}")
+                        elif shown is not None and shown <= e:
+                            # could not reach the ideal step, but the one on screen is affordable: ROLL anyway,
+                            # energy comes first (never sit idle with energy left)
+                            cur_step = shown
+                            log(f"multiplier x{want} unreachable, rolling at x{shown}")
+                        else:
+                            # the shown step costs more energy than we have (would open a "buy rolls" offer)
+                            # or the board is covered: re-check the screen instead of rolling
+                            cur_step = None
+                            forget_steps()  # the cycle may have changed: measure it again next time
+                            log("multiplier unknown/too high, re-checking")
+                            time.sleep(1)
+                            continue
             log(f"roll #{rolls + 1} energy={e}")
             last_roll_t = time.time()
             tap(ROLL, ROLL_WAIT)
             rolls += 1
             last_was_roll = True
             continue
-        # no energy: spend coins on the kingdom, then wait for regen
+        # no energy: spend coins on the kingdom, then watch ads back-to-back until any energy is back
+        if not refilling:
+            global _ads_in_batch
+            refilling = True
+            _ads_in_batch = 0
+            log("dice/money used up: watching ads until energy is back")
         c = coins(img)
         # `need` is only a hint to avoid opening the panel every 15 s; it is dropped after a new
         # kingdom (prices change) and every 8th idle loop, so a stale value can never block building
@@ -1528,11 +1589,7 @@ def main():
                 continue
         idle += 1
         cur_step = None
-        # no energy and nothing to build: watch the free video (it pays dice + coins); it can be repeated
-        global _ads_in_batch, _ads_locked
-        if _ads_locked:
-            _ads_locked, _ads_in_batch = False, 0
-            log("dice used up: a new batch of free videos")
+        # no energy and nothing to build: watch free videos (each pays dice + coins) until any energy is back
         if time.time() - stall_since > 3600:
             stall_since = time.time()
         if time.time() - _last_ad > 20 and watch_ad():

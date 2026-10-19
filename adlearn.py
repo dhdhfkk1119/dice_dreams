@@ -12,7 +12,10 @@ import time
 import cv2
 import numpy as np
 
-LIB = r"D:\dice_dreams\ad_buttons"
+import cvio
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LIB = os.path.join(BASE_DIR, "ad_buttons")
 BAD = os.path.join(LIB, "bad")
 CAND = os.path.join(LIB, "candidates")   # glyphs that coincided with leaving an ad: for review, never used
 SCALES = (0.6, 0.75, 0.9, 1.0, 1.2, 1.5, 1.8, 2.2, 2.6, 3.0)
@@ -26,8 +29,8 @@ _lib, _bad = [], []
 
 def reload():
     global _lib, _bad
-    _lib = [(os.path.basename(p), cv2.imread(p, 0)) for p in sorted(glob.glob(os.path.join(LIB, "*.png")))]
-    _bad = [(os.path.basename(p), cv2.imread(p, 0)) for p in sorted(glob.glob(os.path.join(BAD, "*.png")))]
+    _lib = [(os.path.basename(p), cvio.imread(p, 0)) for p in sorted(glob.glob(os.path.join(LIB, "*.png")))]
+    _bad = [(os.path.basename(p), cvio.imread(p, 0)) for p in sorted(glob.glob(os.path.join(BAD, "*.png")))]
     _lib = [(n, g) for n, g in _lib if g is not None]
     _bad = [(n, g) for n, g in _bad if g is not None]
 
@@ -148,7 +151,7 @@ def learn_bad(img, cand):
     return _save(img, *cand, BAD, "bad")
 
 
-DIALOG_X = cv2.imread(r"D:\dice_dreams\dialogx_glyph.png", 0)   # black X on a white dialog (ad feedback, offers, ...)
+DIALOG_X = cvio.imread(os.path.join(BASE_DIR, "dialogx_glyph.png"), 0)   # black X on a white dialog (ad feedback, offers, ...)
 
 
 def find_dialog_x(img, thr=0.72):

@@ -1,9 +1,11 @@
+import os
+
 import numpy as np
 
 import sling
 
 fps = 59.93
-xs = np.load(r"D:\dice_dreams\shots\face.npy") * sling.SCALE
+xs = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "shots", "face.npy")) * sling.SCALE
 t = np.arange(len(xs)) / fps
 ok = np.isfinite(xs) & (t > 2.4) & (t < 11.0)
 idx = np.nonzero(ok)[0]

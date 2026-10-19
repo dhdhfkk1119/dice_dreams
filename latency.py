@@ -1,9 +1,10 @@
 """Measure how long one `adb shell input motionevent` call takes (the release delay)."""
+import os
 import statistics
 import subprocess
 import time
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
+ADB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "platform-tools", "adb.exe")
 ts = []
 for _ in range(10):
     t = time.perf_counter()

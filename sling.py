@@ -6,13 +6,14 @@ Screen captures take ~1 s, so we read the face once (x plus which way it moves i
 frame -> use two frames), fit the phase, then release with a precisely timed `motionevent UP`.
 """
 import math
+import os
 import subprocess
 import time
 
 import cv2
 import numpy as np
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
+ADB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "platform-tools", "adb.exe")
 SCALE = 1080 / 540          # recording was 540 px wide; screenshots are 1080 px wide
 X_MIN, X_MAX = 101 * SCALE, 402 * SCALE
 HALF = 0.901                # seconds from one end to the other

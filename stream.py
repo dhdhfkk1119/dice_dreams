@@ -2,6 +2,7 @@
 
 Each frame comes with the wall-clock time at which we decoded it (time.perf_counter()).
 """
+import os
 import subprocess
 import threading
 import time
@@ -9,7 +10,7 @@ import time
 import av
 import numpy as np
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
+ADB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "platform-tools", "adb.exe")
 
 
 class Stream:

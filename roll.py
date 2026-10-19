@@ -1,7 +1,8 @@
 import subprocess, sys, time, os
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
-OUT = r"D:\dice_dreams\shots"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ADB = os.path.join(BASE_DIR, "tools", "platform-tools", "adb.exe")
+OUT = os.path.join(BASE_DIR, "shots")
 ROLL = (538, 1977)
 os.makedirs(OUT, exist_ok=True)
 

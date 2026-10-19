@@ -1,9 +1,12 @@
+import os
+
 import cv2
 import numpy as np
 
 import aim_live as al
 
-cap = cv2.VideoCapture(r"D:\dice_dreams\shots\r.mp4")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+cap = cv2.VideoCapture(os.path.join(BASE_DIR, "shots", "r.mp4"))
 fps = cap.get(cv2.CAP_PROP_FPS)
 ts, xs = [], []
 i = 0

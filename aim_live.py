@@ -16,9 +16,10 @@ import numpy as np
 
 from stream import ADB, Stream
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MID, AMP = 268.9, 193.2          # face x range 75.7..462.1 in 540-wide frames (largest-blob centroid)
 HALF0 = 0.900
-T_OFF_FILE = r"D:\dice_dreams\shots\t_off.json"
+T_OFF_FILE = os.path.join(BASE_DIR, "shots", "t_off.json")
 BAR_ROWS = 260
 
 
@@ -169,7 +170,7 @@ def aim_and_release(log=print, sling_xy=(540, 1640, 1800, 1950)):
         try:
             json.dump({"t_up": t_up, "t_cross": t_cross, "tgt": tgt, "phi": phi, "half": half,
                        "t_off": t_off, "traj": traj},
-                      open(r"D:\dice_dreams\shots\aim_traj.json", "w"))
+                      open(os.path.join(BASE_DIR, "shots", "aim_traj.json"), "w"))
         except Exception:
             pass
         result.update(ok=True, t_up=t_up, t_cross=t_cross, last_face=last_face, tgt=tgt, phi=phi, half=half)

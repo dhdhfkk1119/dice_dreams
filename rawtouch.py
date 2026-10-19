@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 
-ADB = r"D:\dice_dreams\tools\platform-tools\adb.exe"
+ADB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "platform-tools", "adb.exe")
 DEV = "/dev/input/event4"      # sec_touchscreen
 W, H = 1080, 2340
 

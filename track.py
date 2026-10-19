@@ -1,10 +1,12 @@
 """Track the yellow face marker and the red target on the sling top bar in a screen recording."""
+import os
 import sys
 
 import cv2
 import numpy as np
 
-path = sys.argv[1] if len(sys.argv) > 1 else r"D:\dice_dreams\shots\r.mp4"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(BASE_DIR, "shots", "r.mp4")
 cap = cv2.VideoCapture(path)
 fps = cap.get(cv2.CAP_PROP_FPS)
 xs, tg = [], []
@@ -22,8 +24,8 @@ while True:
 xs, tg = np.array(xs), np.array(tg)
 print("fps", fps, "frames", len(xs), "valid face", int(np.isfinite(xs).sum()), "valid target", int(np.isfinite(tg).sum()))
 print("target x median", np.nanmedian(tg), "face x range", np.nanmin(xs), np.nanmax(xs))
-np.save(r"D:\dice_dreams\shots\face.npy", xs)
-np.save(r"D:\dice_dreams\shots\tgt.npy", tg)
+np.save(os.path.join(BASE_DIR, "shots", "face.npy"), xs)
+np.save(os.path.join(BASE_DIR, "shots", "tgt.npy"), tg)
 for i in range(0, len(xs), 30):
     fx = "-" if np.isnan(xs[i]) else round(xs[i])
     tx = "-" if np.isnan(tg[i]) else round(tg[i])

@@ -1,8 +1,11 @@
+import os
+
 import numpy as np
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 fps = 59.93
-xs = np.load(r"D:\dice_dreams\shots\face.npy")
-tg = np.load(r"D:\dice_dreams\shots\tgt.npy")
+xs = np.load(os.path.join(BASE_DIR, "shots", "face.npy"))
+tg = np.load(os.path.join(BASE_DIR, "shots", "tgt.npy"))
 ok = np.isfinite(xs)
 t = np.arange(len(xs)) / fps
 seg = ok & (t > 2.3) & (t < 11.4)
