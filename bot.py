@@ -640,16 +640,28 @@ def find_video_bubble(img, thr=0.62):
     return best[1:] if best else None
 
 
+LOCK_TPL = cvio.imread(os.path.join(BASE_DIR, "lock_tpl.png"))  # the gold padlock+chain over a locked tile's WATCH
+LOCK_SCALES = (0.6, 0.8, 1.0, 1.2, 1.5)
+LOCK_THR = 0.69  # measured: locked tiles score >=0.73, unlocked (just the tile's own gold border) <=0.65
+
+
 def watch_locked(img, x, y):
-    """A reward-path tile's WATCH button sits above a small gold padlock+chain icon when that tile is not the
-    unlocked/current one yet (e.g. the milestone grid: only one tile is open, the rest show a lock below their
-    WATCH button until earlier tiles are claimed). A plain gold tile border has no such icon there."""
-    region = img[y + 95:y + 140, x - 45:x + 45].astype(int)
-    if region.size == 0:
+    """A reward-path tile's WATCH button sits near a gold padlock+chain icon when that tile is not the
+    unlocked/current one yet (milestone grids and vertical lists like VIDEO CRAZE: only one tile is open, the
+    rest stay locked until earlier ones are claimed). Looked for around the button, at any scale/position,
+    since the lock sits in a different spot in each layout - a plain gold tile border never matches it."""
+    if LOCK_TPL is None:
         return False
-    b, g, r = region[..., 0], region[..., 1], region[..., 2]
-    gold = ((r > 180) & (g > 130) & (g < 220) & (b < 120)).mean()
-    return gold > 0.03
+    y0, y1 = max(0, y - 60), min(img.shape[0], y + 220)
+    x0, x1 = max(0, x - 280), min(img.shape[1], x + 280)
+    region = img[y0:y1, x0:x1]
+    for s in LOCK_SCALES:
+        t = cv2.resize(LOCK_TPL, None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_LINEAR)
+        if t.shape[0] >= region.shape[0] or t.shape[1] >= region.shape[1]:
+            continue
+        if cv2.matchTemplate(region, t, cv2.TM_CCOEFF_NORMED).max() >= LOCK_THR:
+            return True
+    return False
 
 
 BACK_ARROW = cvio.imread(os.path.join(BASE_DIR, "backarrow_mask.png"), 0)  # light-blue "<-" of full-screen event pages
