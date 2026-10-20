@@ -956,6 +956,42 @@ def maybe_trail(img):
     return False
 
 
+def video_craze_screen(img):
+    """True on the VIDEO CRAZE event page (its own popup: a vertical list of WATCH tiers, each unlocking the
+    next), found by its title in the top band."""
+    texts = "".join(t for _, t, _ in ocr(img[150:700])[0] or []).upper().replace(" ", "")
+    return "CRAZE" in texts
+
+
+def use_video_craze():
+    """Watch every unlocked tier of VIDEO CRAZE back-to-back (bypasses the regular popup-WATCH rate limit:
+    this event is meant to be cleared in one go, each watch unlocking the next tier down)."""
+    watched = 0
+    for _ in range(10):
+        img = shot()
+        if not video_craze_screen(img):
+            break
+        found = ocr(img)[0] or []
+        wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
+              if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
+        wt = [p for p in wt if not watch_locked(img, *p)]
+        if not wt:
+            break
+        log(f"video craze: tier #{watched + 1} at {wt[0]}")
+        tap(wt[0], 3)
+        if not is_ad_focus(focus()):
+            break  # the tap did nothing (e.g. daily watch limit reached): stop, don't loop forever
+        watched += 1
+        ride_ad()
+    log(f"video craze: done, watched {watched} tier(s)")
+    img = shot()
+    if video_craze_screen(img):
+        xy = find_close_x(img)
+        if xy:
+            tap(xy, 1.2)
+    return watched > 0
+
+
 def is_ad_any(f):
     """An ad window, also when it runs in another package (Facebook Audience Network and friends)."""
     fl = f.lower()
@@ -1854,6 +1890,9 @@ def main():
                 share_story_only()
                 continue
             if kingdom_restored_fast(img):
+                continue
+            if video_craze_screen(img):  # its own event: watch every unlocked tier, not just one popup watch
+                use_video_craze()
                 continue
             f = focus()
             if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is in front
