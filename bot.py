@@ -640,6 +640,18 @@ def find_video_bubble(img, thr=0.62):
     return best[1:] if best else None
 
 
+def watch_locked(img, x, y):
+    """A reward-path tile's WATCH button sits above a small gold padlock+chain icon when that tile is not the
+    unlocked/current one yet (e.g. the milestone grid: only one tile is open, the rest show a lock below their
+    WATCH button until earlier tiles are claimed). A plain gold tile border has no such icon there."""
+    region = img[y + 95:y + 140, x - 45:x + 45].astype(int)
+    if region.size == 0:
+        return False
+    b, g, r = region[..., 0], region[..., 1], region[..., 2]
+    gold = ((r > 180) & (g > 130) & (g < 220) & (b < 120)).mean()
+    return gold > 0.03
+
+
 BACK_ARROW = cvio.imread(os.path.join(BASE_DIR, "backarrow_mask.png"), 0)  # light-blue "<-" of full-screen event pages
 
 
@@ -1850,6 +1862,7 @@ def main():
             found = ocr(img)[0] or []
             wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
                   if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
+            wt = [p for p in wt if not watch_locked(img, *p)]  # skip reward-path tiles not unlocked yet
             _watch_times[:] = [x for x in _watch_times if time.time() - x < 300]
             if wt and len(_watch_times) < 3 and not re.search(r"[$₩€£]", " ".join(r[1] for r in found)):
                 # an offer popup with a WATCH (free video) button: take it, same as the lobby bubble
