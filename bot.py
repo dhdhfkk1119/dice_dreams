@@ -32,6 +32,7 @@ def require_phone():
 OUT = os.path.join(BASE_DIR, "shots")
 ROLL = (538, 1977)
 HAMMER = (948, 2211)
+HAMMER_BADGE = (970, 2115, 1055, 2185)  # red badge on the hammer icon: how many upgrades are affordable right now
 SCENE = (540, 500)        # empty scene area: closes the build panel
 ROLL_WAIT = 1.3  # seconds between ROLL taps
 MAX_IDLE = 240  # x 15 s (1 hour) with no energy before giving up
@@ -794,6 +795,12 @@ def trail_tokens_lobby(img):
     return _num_from(img, TRAIL_BADGE, 3)
 
 
+def hammer_badge(img):
+    """The hammer icon's red badge: how many upgrade steps are affordable right now, or None when it isn't
+    shown (nothing affordable)."""
+    return _num_from(img, HAMMER_BADGE, 3)
+
+
 def trail_tokens_screen(img):
     return _num_from(img, TRAIL_TOKENS_BOX, 2)
 
@@ -986,6 +993,26 @@ def watch_ad(img=None, max_s=150):
         return True
     _ads_in_batch += 1
     log(f"ad: watching a free video #{_ads_in_batch} (refilling to 50 energy, bubble at {pos})")
+    ride_ad()
+    return True
+
+
+VIDEO_ICON = (968, 540)  # lobby, top-right: the "VIDEO" bonus-ad icon (its own cooldown timer) - pays more
+                          # than the regular lobby bubble, so try it first once there's nothing else to do
+
+
+def try_video_event(img=None):
+    """Tap the VIDEO bonus-ad icon; only counts as a watch (and pays more) when it is actually off cooldown -
+    a tap while it is still counting down does nothing, which is how this tells the two apart."""
+    global _last_ad
+    img = shot() if img is None else img
+    if find_close_x(img) is not None or not roll_visible(img):
+        return False
+    tap(VIDEO_ICON, 2.0)
+    if not is_ad_focus(focus()):  # still on cooldown: the tap did nothing
+        return False
+    _last_ad = time.time()
+    log("video event: off cooldown, watching the bonus ad")
     ride_ad()
     return True
 
@@ -2022,24 +2049,34 @@ def main():
                 continue
             # ads are watched only once energy and money are both spent (see the e < 1 branch below);
             # while there's still dice or coins to use, just keep rolling/building.
-            # priority 1: 500,000+ coins -> upgrade the kingdom, front card first (crowns raise attack/jackpot payouts)
-            since_check += 1
-            rich = bool(_kingdom_cost) and (_last_coins or 0) >= _kingdom_cost
-            if since_check >= (1 if rich else (2 if _kingdom_cost else 4)) and not free_mode:
-                since_check = 0
-                cc = coins(img)
-                if cc is not None:
-                    _last_coins = cc
-                # the next KINGDOM within reach (coins cover everything still unbuilt): upgrades come first,
-                # whatever the 500k rule says
-                finish = bool(_kingdom_cost) and cc is not None and cc >= _kingdom_cost
-                if cc is not None and (cc >= BUILD_AT or finish):
-                    log(f"coins {cc} cover the whole kingdom (~{_kingdom_cost:,.0f}): upgrades first" if finish
-                        else f"coins {cc} >= {BUILD_AT}: upgrading the kingdom")
+            # priority 1: money -> kingdom upgrades. The hammer's red badge counts upgrades affordable right
+            # now and updates live, so check it every loop (no throttle) instead of waiting on a timer.
+            if not free_mode:
+                hb = hammer_badge(img)
+                if hb:
+                    log(f"hammer badge {hb}: upgrades available, building")
                     n, _ = build_all()
                     if n:
                         cur_step = None
                         continue
+                else:
+                    since_check += 1
+                    rich = bool(_kingdom_cost) and (_last_coins or 0) >= _kingdom_cost
+                    if since_check >= (1 if rich else (2 if _kingdom_cost else 4)):
+                        since_check = 0
+                        cc = coins(img)
+                        if cc is not None:
+                            _last_coins = cc
+                        # the next KINGDOM within reach (coins cover everything still unbuilt): upgrades come
+                        # first, whatever the 500k rule says
+                        finish = bool(_kingdom_cost) and cc is not None and cc >= _kingdom_cost
+                        if cc is not None and (cc >= BUILD_AT or finish):
+                            log(f"coins {cc} cover the whole kingdom (~{_kingdom_cost:,.0f}): upgrades first" if finish
+                                else f"coins {cc} >= {BUILD_AT}: upgrading the kingdom")
+                            n, _ = build_all()
+                            if n:
+                                cur_step = None
+                                continue
             if not free_mode and maybe_trail(img):
                 cur_step = None
                 continue
@@ -2097,12 +2134,17 @@ def main():
                 continue
         idle += 1
         cur_step = None
-        # no energy and nothing to build: watch free videos (each pays dice + coins) until any energy is back
+        # no energy and nothing to build: the VIDEO bonus-ad icon pays more than the lobby bubble, so try it
+        # first; only once it's on cooldown (or absent) do we fall back to the regular lobby bubble
         if time.time() - stall_since > 3600:
             stall_since = time.time()
-        if time.time() - _last_ad > 20 and watch_ad():
-            idle = 0
-            continue
+        if time.time() - _last_ad > 20:
+            if try_video_event(img):
+                idle = 0
+                continue
+            if watch_ad():
+                idle = 0
+                continue
         if idle % 40 == 1:  # nothing to roll or build: collect free rewards (every ~10 min)
             claim_weekly()
             use_puzzle()
