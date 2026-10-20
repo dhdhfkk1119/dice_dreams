@@ -1154,7 +1154,13 @@ def open_panel():
     returned True (a swipe on the lobby would spin the camera)."""
     if panel_open(shot()):
         return True
-    for _ in range(2):
+    for _ in range(3):
+        img = shot()
+        xy = find_close_x(img)
+        if xy:  # a popup (reward, milestone, ...) is covering the hammer / the panel's own tab text
+            log(f"open_panel: popup at {xy} in the way: closing it")
+            tap(xy, 1.0)
+            continue
         tap(HAMMER, 0.5)
         for _ in range(6):
             if panel_open(shot()):
@@ -1282,7 +1288,14 @@ def build_all():
     for i in range(60):
         found = front_card(first=(i == 0))
         if found is None:
-            prog = kingdom_progress(shot())
+            img0 = shot()
+            xy = find_close_x(img0)
+            if xy:  # a reward/milestone popup over the strip - front_card() can't see past it either
+                log(f"build: popup over the strip at {xy}: closing it")
+                tap(xy, 1.0)
+                recog_retry = 0
+                continue
+            prog = kingdom_progress(img0)
             if prog and prog[0] < prog[1] and recog_retry < 2:
                 # the bar says steps are still missing but no price was read: look again before giving up
                 recog_retry += 1
