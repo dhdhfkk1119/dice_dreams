@@ -565,9 +565,28 @@ def read_page():
     return img, ps
 
 
+def strip_sig(img):
+    return img[1960:2260:6, ::6].astype(np.int16)
+
+
+def strip_same(a, b, thr=2.0):
+    return float(np.abs(a - b).mean()) < thr
+
+
 def scroll_to_start():
-    for _ in range(3):
+    """Swipe the strip back to its first card, stopping as soon as a swipe changes nothing (the strip is at its
+    left end): usually one swipe when it already was there, instead of a fixed number of blind ones.
+    Returns the frame of the start page."""
+    prev = strip_sig(shot())
+    img = None
+    for _ in range(6):
         scroll_cards(-1, 800)
+        img = shot()
+        cur = strip_sig(img)
+        if strip_same(prev, cur):
+            return img
+        prev = cur
+    return img
 
 
 def crowns_filled(img, price_x):
@@ -587,17 +606,19 @@ def crowns_filled(img, price_x):
 
 def scan_cards():
     """Walk the whole strip once; returns a list of dicts (price, crowns, page) for every card."""
-    scroll_to_start()
-    seen, last = {}, None
-    for page in range(7):
-        img, ps = read_page()
-        key = tuple(p for p, _ in ps)
-        if page and key == last:
-            break  # the strip did not move: that was the end
-        last = key
+    img = scroll_to_start()
+    seen = {}
+    for page in range(8):
+        ps = prices(img)
         for price, x in ps:
             seen.setdefault(price, {"price": price, "crowns": crowns_filled(img, x), "page": page})
+        before = strip_sig(img)
         scroll_cards(+1, 900)  # one page = the three visible cards
+        img = shot()
+        if strip_same(before, strip_sig(img)):
+            img = shot()  # still gliding? look once more before calling it the end
+            if strip_same(before, strip_sig(img)):
+                break  # the swipe changed nothing: that was the end of the strip
     return list(seen.values())
 
 
@@ -1263,27 +1284,34 @@ def close_panel():
             tap(HAMMER, 1.5)  # the tap on the scene did not close it: toggle with the hammer
 
 
-def front_card(first=True):
+def front_card(first=True, img=None):
     """First card, from the left, that still has a price button. Finished buildings stay in the strip as
-    green check marks (no price), so scroll right past them. Returns (screenshot, (price, x)) or None.
-    `first`: go to the start of the strip first; later calls (after a purchase) just look, the strip stays put."""
+    green check marks (no price), so swipe right past them. Returns (screenshot, (price, x)) or None.
+    `first`: go to the start of the strip first; later calls just look at `img` (the frame taken right after the
+    last purchase) - the strip stays put, so no swipe and no extra screenshot are needed.
+    The end of the strip is detected by a swipe that changes nothing (no blind repeated swiping)."""
     if first:
         time.sleep(0.3)  # the panel is still sliding up; swipes during that animation do nothing
-        scroll_to_start()
-    last_key, still = None, 0
+        img = scroll_to_start()
+    elif img is None:
+        img = settle()
     for _ in range(14):
-        img, ps = read_page()
+        ps = prices(img)
         if ps and ps[0][1] < 90:      # the leftmost button is cut off at the edge: a card hides further left
             scroll_cards(-1, 250)
+            img = settle()
             continue
         if ps:
             return img, ps[0]
-        key = img[2040:2260:8, ::8].tobytes()  # did the strip move since last time? (end-of-list check)
-        still = still + 1 if key == last_key else 0
-        if still >= 2:                          # twice in a row: really the end of the strip
-            return None
-        last_key = key
-        scroll_cards(+1, 900)  # one page = the three visible cards
+        if find_close_x(img) is not None:
+            return None               # a reward popup sits over the strip: let the caller close it (never swipe on it)
+        before = strip_sig(img)
+        scroll_cards(+1, 900)         # no price on this page: all finished -> next page
+        img = shot()
+        if strip_same(before, strip_sig(img)):
+            img = shot()
+            if strip_same(before, strip_sig(img)):
+                return None           # the swipe changed nothing: the end of the strip
     return None
 
 
@@ -1327,6 +1355,9 @@ PROGRESS_BOX = (250, 1630, 850, 1730)    # build panel: "21/45" = steps done / s
 _kingdom_cost = 0.0      # estimated coins still needed to finish the whole kingdom (0 = unknown)
 _kc_time = 0.0
 _last_front_price = 0
+_hold_need = 0.0     # coins the front card needs to be finished in one go ('saving up'); 0 = not holding
+_hold_time = 0.0
+HOLD_RECHECK_S = 240   # while holding, look at the panel again only this often (a free COMPLETE NOW video may be up)
 
 
 def kingdom_progress(img):
@@ -1365,7 +1396,7 @@ def build_all():
         log("build: could not open the build panel")
         return 0, None
     global _last_front_price
-    bought, target_price, stalls, recog_retry = 0, None, 0, 0
+    bought, target_price, stalls, recog_retry, next_img = 0, None, 0, 0, None
     if time.time() - _kc_time > 600:  # how much does the whole kingdom still cost? (decides "money is plentiful")
         total, n_cards = scan_kingdom_cost()
         prog = kingdom_progress(shot())
@@ -1373,7 +1404,8 @@ def build_all():
             + (f" (steps {prog[0]}/{prog[1]})" if prog else ""))
         scroll_to_start()
     for i in range(60):
-        found = front_card(first=(i == 0))
+        found = front_card(first=(i == 0), img=next_img)
+        next_img = None
         if found is None:
             img0 = shot()
             xy = find_close_x(img0)
@@ -1402,8 +1434,11 @@ def build_all():
         recog_retry = 0
         img, (price, x) = found
         _last_front_price = price
-        cn = complete_now_button(img)
         c_now = coins(img)
+        need_now = estimate_total_to_complete(price, crowns_filled(img, x))
+        # a free video completes the front building at once - worth it only when the coins cannot do it right now
+        # (buying is far quicker than a 2-minute video); the OCR for the bubble is skipped when coins suffice
+        cn = None if (c_now is not None and c_now >= need_now) else complete_now_button(img)
         if cn and c_now is not None and _kingdom_cost and c_now >= _kingdom_cost:
             cn = None  # plenty of coins for the whole kingdom: buying is quicker than watching a video
         now_t = time.time()
@@ -1416,7 +1451,7 @@ def build_all():
             tap(cn, 3)
             ride_ad()
             continue
-        c = coins(img)
+        c = c_now
         if c is None:
             c = coins(shot())
             if c is None:
@@ -1428,6 +1463,8 @@ def build_all():
         need_total = estimate_total_to_complete(price, crowns)
         target_price = need_total
         if need_total > c:
+            global _hold_need, _hold_time
+            _hold_need, _hold_time = need_total, time.time()
             log(f"build: front card {price} ({crowns}/5 crowns) - saving up to finish it in one go "
                 f"(~{need_total:,.0f} total, have {c})")
             if time.time() - _kc_time > 600:  # how far is the next KINGDOM? (remaining steps and coins)
@@ -1437,9 +1474,10 @@ def build_all():
                     + (f", steps {prog[0]}/{prog[1]}" if prog else "") + ")")
             break
         log(f"build front card {price} ({crowns}/5 crowns, coins {c})")
-        tap((x, BUTTON_Y), 1.6)
+        tap((x, BUTTON_Y), 0.9)
         bought += 1
-        c2 = coins(shot())
+        next_img = shot()          # this one frame serves both the coin check and the next card's price read
+        c2 = coins(next_img)
         stalls = stalls + 1 if (c2 is not None and c2 == c) else 0
         if stalls >= 2:  # coins did not change: the tap does not buy (popup / animation)
             log("build: purchase did not register, handing control back")
@@ -2117,6 +2155,14 @@ def main():
             # now and updates live, so check it every loop (no throttle) instead of waiting on a timer.
             if not free_mode:
                 hb = hammer_badge(img)
+                holding = False
+                if _hold_need and time.time() - _hold_time < HOLD_RECHECK_S:
+                    cnow = coins(img)
+                    if cnow is not None:
+                        _last_coins = cnow
+                    holding = (cnow or 0) < _hold_need
+                if hb and holding:
+                    hb = 0   # the badge only means "some step is affordable"; we are saving up for the whole card
                 if hb:
                     log(f"hammer badge {hb}: upgrades available, building")
                     n, _ = build_all()
@@ -2126,6 +2172,8 @@ def main():
                 else:
                     since_check += 1
                     rich = bool(_kingdom_cost) and (_last_coins or 0) >= _kingdom_cost
+                    if holding:
+                        since_check = 0
                     if since_check >= (1 if rich else (2 if _kingdom_cost else 4)):
                         since_check = 0
                         cc = coins(img)
