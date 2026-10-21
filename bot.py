@@ -285,9 +285,11 @@ def _x_shaped(img, cx, cy, rad, x_min):
 
 
 def steal_tiles(img):
-    """The 5 glowing blue stepping tiles of the "Pick your next step and STEAL" game: [(x, y)] left to right."""
+    """The glowing blue stepping tiles of the "Pick your next step and STEAL" game (5, then 4, 3, 2 as rounds
+    pass): [(x, y)] left to right. The tiles sit edge to edge with no gap, so a loose brightness threshold
+    fuses them into one blob; v>=240 keeps only their bright glow, which stays separate."""
     h = cv2.cvtColor(img[1600:1830], cv2.COLOR_BGR2HSV)
-    m = cv2.morphologyEx(cv2.inRange(h, (95, 120, 200), (112, 255, 255)), cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+    m = cv2.morphologyEx(cv2.inRange(h, (85, 100, 240), (115, 255, 255)), cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
     n, _, st, cent = cv2.connectedComponentsWithStats(m)
     tiles = [(int(cent[i][0]), int(cent[i][1]) + 1600) for i in range(1, n) if 12000 < st[i, 4] < 32000]
     return sorted(tiles) if len(tiles) >= 2 else []
