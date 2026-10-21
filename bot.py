@@ -1062,6 +1062,24 @@ def use_video_craze():
     watched = 0
     for _ in range(14):
         img = shot()
+        for _retry in range(8):   # right after an ad the grid takes a few seconds to come back (and rewards pop up)
+            if video_craze_screen(img):
+                break
+            xy_pop = find_close_x(img) if not roll_visible(img) else None
+            hit_btn = None
+            if xy_pop is None and not roll_visible(img):
+                hit_btn = next(((int(sum(q[0] for q in b) / 4), int(sum(q[1] for q in b) / 4))
+                                for b, t, _ in (ocr(img)[0] or []) if t.strip().upper().strip("!") in BUTTONS), None)
+            if roll_visible(img):
+                break   # back in the lobby: the page is gone
+            if hit_btn:
+                tap(hit_btn, 1.2)   # a reward popup (CLAIM / COLLECT) on the way back
+            elif not roll_visible(img) and re.search(r"TAP\W{0,2}TO", " ".join(t for _, t, _ in (ocr(img)[0] or [])).upper()):
+                f_ = ocr(img)[0] or []
+                tap_to_collect(f_, " ".join(t for _, t, _ in f_).upper())  # "TAP TO COLLECT" (daily rewards ...)
+            else:
+                time.sleep(1.2)
+            img = shot()
         if not video_craze_screen(img):
             break
         found = ocr(img)[0] or []
@@ -1085,6 +1103,18 @@ def use_video_craze():
         if xy:
             tap(xy, 1.2)
     return watched > 0
+
+
+def tap_to_collect(found, texts=""):
+    """"TAP TO COLLECT / CONTINUE": press the prompt itself (a tap in the middle of a page can hit a prize icon and
+    only open its info bubble, as on the DAILY REWARDS calendar); DAILY REWARDS also wants its prize bar pressed."""
+    if "DAILY" in texts and "REWARDS" in texts:
+        tap((538, 1814), 1.2)   # today's prize bar
+    for b, t, _ in found:
+        if re.search(r"TAP\W{0,2}TO", t.upper()):
+            tap((int(sum(q[0] for q in b) / 4), int(sum(q[1] for q in b) / 4)), 1.0)
+            return
+    tap(ANYWHERE, 1.0)
 
 
 def invite_page(texts):
@@ -2205,7 +2235,7 @@ def play(max_rolls):
                 continue
             if re.search(r"TAP\W{0,2}TO\b", texts):  # "TAP TO CONTINUE/COLLECT" (OCR gives "TAP+TO"): touch anywhere
                 log("tap to continue")
-                tap(ANYWHERE, 1.0)
+                tap_to_collect(found, texts)
                 continue
             for b, t, _ in found:  # ads / offers / payment popups: close with X
                 if t.strip().upper() in ("X", "×") and sum(p[0] for p in b) / 4 > 700 \
