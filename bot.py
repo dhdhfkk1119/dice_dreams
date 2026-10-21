@@ -1853,12 +1853,21 @@ def claim_weekly():
     return claimed
 
 
+NO_AD_SWITCH_S = 60  # ads-only mode: no video found for this long -> fall into normal play instead of idling
+
+
 def run_ads_only(max_ads):
     """CLI `python bot.py ads N`: ignore rolling/building/minigames entirely (none of those can even trigger
     without a ROLL tap) and just watch up to N free videos in a row, handling only what can actually stand
     between one video and the next: a stray event page, an ad/app already in front, a popup, or a leftover
-    share sheet from a kingdom that just finished."""
+    share sheet from a kingdom that just finished.
+
+    If no video is found for NO_AD_SWITCH_S, this falls into play() - normal rolling/building - instead of
+    idling: energy that piled up unused gets spent, and since play() watches ads itself whenever it runs dry
+    (the same functions used here), that side of the cycle (ads <-> normal play) keeps going on its own from
+    there; this function's own loop does not regain control once that happens."""
     watched = 0
+    no_ad_since = time.time()
     log(f"ads-only mode: watching up to {max_ads} free videos")
     while watched < max_ads:
         img = shot()
@@ -1894,22 +1903,24 @@ def run_ads_only(max_ads):
         if fb_sheet(img):  # a kingdom-restored share sheet left open
             share_story_only()
             continue
-        if time.time() - _last_ad > 20 and watch_ad(img):
-            watched += 1
-            log(f"ads mode: {watched}/{max_ads} watched")
-            continue
+        if time.time() - _last_ad > 20:
+            if try_video_event(img) or watch_ad(img):
+                watched += 1
+                no_ad_since = time.time()
+                log(f"ads mode: {watched}/{max_ads} watched")
+                continue
+        if time.time() - no_ad_since > NO_AD_SWITCH_S:
+            log(f"ads-only mode: no video for {NO_AD_SWITCH_S}s, switching to normal play (builds/rolls, and "
+                f"watches ads itself once energy runs out - so the ads<->play cycle keeps going from here)")
+            play(100000)
+            return
         time.sleep(2)
     log(f"ads-only mode: done, watched {watched} ads")
 
 
-def main():
-    require_phone()
-    # `python bot.py N` plays normally for up to N rolls; `python bot.py ads N` ignores rolling/building and
-    # just watches up to N free videos back-to-back (see run_ads_only, a separate leaner loop).
-    if len(sys.argv) > 1 and sys.argv[1].lower() == "ads":
-        run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
-        return
-    max_rolls = int(sys.argv[1]) if len(sys.argv) > 1 else 20
+def play(max_rolls):
+    """Normal play: build/roll/trail while there's energy or money, watch ads once both run out, repeat.
+    Shared by `python bot.py N` and by run_ads_only(), which falls into this once ads dry up for a while."""
     touch_ok()
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
@@ -2351,6 +2362,16 @@ def main():
         log(f"energy low, waiting (coins={c}, next build needs {need})")
         time.sleep(15)  # poll often: energy can jump (rewards) and popups may appear
     log("done", rolls, "rolls")
+
+
+def main():
+    require_phone()
+    # `python bot.py N` plays normally for up to N rolls; `python bot.py ads N` ignores rolling/building and
+    # just watches up to N free videos back-to-back (run_ads_only falls into play() itself if ads dry up).
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "ads":
+        run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
+        return
+    play(int(sys.argv[1]) if len(sys.argv) > 1 else 20)
 
 
 if __name__ == "__main__":
