@@ -986,6 +986,14 @@ def video_craze_screen(img):
     return "CRAZE" in texts
 
 
+def paid_offer_screen(img):
+    """A real-money purchase funnel ('... OFFER', e.g. 'ROYAL ARMOR OFFER'): a ladder of tiles where only the
+    paid one is open and every 'FREE' tile below it sits behind a padlock until that paid one is bought. Never
+    worth entering - the free dice/coins it chains to cost money first - so just close it, never tap inside."""
+    texts = " ".join(t for _, t, _ in ocr(img[150:500])[0] or []).upper()
+    return bool(re.search(r"\bOFFER\b", texts)) and "CRAZE" not in texts
+
+
 def use_video_craze():
     """Watch every unlocked tier of VIDEO CRAZE back-to-back (bypasses the regular popup-WATCH rate limit:
     this event is meant to be cleared in one go, each watch unlocking the next tier down)."""
@@ -1947,6 +1955,11 @@ def main():
                 continue
             if video_craze_screen(img):  # its own event: watch every unlocked tier, not just one popup watch
                 use_video_craze()
+                continue
+            if paid_offer_screen(img):  # a real-money funnel: close it, never tap its chained "FREE" tiles
+                xy = find_close_x(img)
+                log(f"paid offer screen: closing at {xy}" if xy else "paid offer screen: no X found, BACK")
+                tap(xy, 1.5) if xy else adb("shell", "input", "keyevent", "KEYCODE_BACK")
                 continue
             f = focus()
             if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is in front
