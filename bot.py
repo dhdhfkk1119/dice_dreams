@@ -1121,22 +1121,29 @@ def watch_ad(img=None, max_s=150):
     return True
 
 
-VIDEO_ICON = (968, 540)  # lobby, top-right: the "VIDEO" bonus-ad icon (its own cooldown timer) - pays more
-                          # than the regular lobby bubble, so try it first once there's nothing else to do
+VIDEO_BOX = (700, 200, 1080, 1050)  # lobby, right side icon stack: where the "VIDEO" bonus-ad icon can be
 
 
 def try_video_event(img=None):
-    """Tap the VIDEO bonus-ad icon; only counts as a watch (and pays more) when it is actually off cooldown -
-    a tap while it is still counting down does nothing, which is how this tells the two apart."""
+    """Tap the VIDEO bonus-ad icon, found by its text - the right-side icon stack reorders depending on what's
+    currently active, so a fixed position can land on a different icon (e.g. a paid OFFER) once VIDEO isn't
+    there at all. Only counts as a watch (pays more than the regular lobby bubble) when it's actually off
+    cooldown - a tap while it's still counting down does nothing, which is how this tells the two apart."""
     global _last_ad
     img = shot() if img is None else img
     if find_close_x(img) is not None or not roll_visible(img):
         return False
-    tap(VIDEO_ICON, 2.0)
+    x0, y0, x1, y1 = VIDEO_BOX
+    found = ocr(img[y0:y1, x0:x1])[0] or []
+    hit = next(((int(sum(p[0] for p in b) / 4) + x0, int(sum(p[1] for p in b) / 4) + y0)
+                for b, t, _ in found if t.strip().upper() == "VIDEO"), None)
+    if hit is None:
+        return False  # no VIDEO icon right now: let the caller fall back to the regular lobby bubble
+    tap(hit, 2.0)
     if not is_ad_focus(focus()):  # still on cooldown: the tap did nothing
         return False
     _last_ad = time.time()
-    log("video event: off cooldown, watching the bonus ad")
+    log(f"video event: off cooldown at {hit}, watching the bonus ad")
     ride_ad()
     return True
 
