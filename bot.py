@@ -573,10 +573,12 @@ def read_page():
 
 
 def strip_sig(img):
-    return img[1960:2260:6, ::6].astype(np.int16)
+    # the whole card area, building pictures included: pages of finished cards (plain white with a green check)
+    # look alike, so the price/crown rows alone made a real swipe look like "nothing moved"
+    return img[1500:2260:5, ::5].astype(np.int16)
 
 
-def strip_same(a, b, thr=2.0):
+def strip_same(a, b, thr=0.9):
     return float(np.abs(a - b).mean()) < thr
 
 
@@ -833,7 +835,7 @@ TRAIL_TOKENS_BOX = (330, 2090, 780, 2200)
 TRAIL_MULT_BOX = (730, 1840, 900, 1960)
 TRAIL_CYCLE = [1, 5, 10, 15, 20, 30, 50, 100, 200, 400, 600, 800, 1200, 2000]   # measured: one tap = next entry
 TRAIL_AT = 200        # start spending when this many tokens have piled up ...
-TRAIL_BEST = 50       # ... at x50 (as the user asked), stepping down for the remainder until 0
+TRAIL_BEST = 50       # ... at x50 (as the user asked); with fewer than 50 left the bot just leaves the page
 _trail_check = 0.0
 
 
@@ -926,8 +928,10 @@ def use_trail():
             tap(hit or ANYWHERE, 1.0)
             continue
         tokens = trail_tokens_screen(img)
-        if tokens is None or tokens < 1:
-            log("trail: no tokens left")
+        if tokens is None or tokens < TRAIL_BEST:
+            # fewer tokens than one x50 spin: leave at once and go back to the dice (as the user asked)
+            log(f"trail: {tokens} tokens left, below x{TRAIL_BEST}: leaving" if tokens is not None
+                else "trail: token count unreadable, leaving")
             break
         want = max([m for m in TRAIL_CYCLE if m <= min(TRAIL_BEST, tokens)] or [1])
         if trail_mult(img) != want and not trail_set_mult(want):
@@ -2086,7 +2090,9 @@ def play(max_rolls):
                     if tok == "FREE" and locked:
                         continue  # a FREE that sits behind a padlock / on a paid offer page is not a gift
                     key = (tok, cx // 50, cy // 50)
-                    n_pressed = btn_hist.get(key, (0, 0))[0]
+                    n_pressed, last_t = btn_hist.get(key, (0, 0))
+                    if now_b - last_t > 12:   # a fresh appearance of the button, not a repeat on the same stuck screen
+                        n_pressed = 0
                     if n_pressed >= (3 if tok == "FREE" else 6):
                         continue  # pressed again and again with no effect: leave it, close the page with its X
                     btn_hist[key] = (n_pressed + 1, now_b)
@@ -2178,7 +2184,13 @@ def play(max_rolls):
             steal_bar = re.search(r"\d[\d,]*\s*/\s*\d{2},\d{3}", texts)  # "0 / 19,000" progress bar
             px = img[225, 700].astype(int)  # BGR; purple banner = STEAL, blue banner = attack
             purple_banner = "KINGDOM" in texts and px[1] < 100 and px[0] > 180 and px[2] > 100
-            if "STEAL" in texts or steal_bar or purple_banner or "STOLEN" in texts or "TREASURE" in texts:
+            on_mission_page = any(k in texts for k in ("DREAM PASS", "NEW MISSIONS", "ACTIVATE", "COMPLETE A BUILDING"))
+            if on_mission_page:  # the missions / Dream Pass page (its ACTIVATE is paid): just leave by the arrow
+                ba2 = find_back_arrow(img, 0.4) or (104, 155)
+                log(f"missions / Dream Pass page: back arrow at {ba2}")
+                tap(ba2, 2.0)
+                continue
+            if not on_mission_page and ("STEAL" in texts or steal_bar or purple_banner or "STOLEN" in texts or "TREASURE" in texts):
                 tiles = steal_tiles(img)
                 if tiles:  # the stepping-tile variant: the tutorial hand points at the right-most tile
                     steal_n += 1
