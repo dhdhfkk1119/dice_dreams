@@ -1913,7 +1913,21 @@ def main():
                 continue
             hsv_p = cv2.cvtColor(img[1960:2130, 60:870], cv2.COLOR_BGR2HSV)
             if cv2.inRange(hsv_p, (140, 110, 190), (170, 255, 255)).mean() / 255 > 0.35:
-                # FRIENDS MULTIPLIER pinball: only the three big pink buttons at the bottom matter (each drops a ball)
+                # FRIENDS MULTIPLIER pinball: only the three big pink buttons at the bottom matter (each drops a
+                # ball). The results screen (COLLECT, ...) shares this pink colouring, so check for a real
+                # button first - otherwise this would keep mashing pinball buttons on a screen that is done.
+                hit = next(((int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in ocr(img)[0] or []
+                            if t.strip().upper().strip("!") in BUTTONS), None)
+                if hit:
+                    log(f"pinball: results screen, button at {hit}")
+                    tap(hit, 1.5)
+                    pinball_n = 0
+                    continue
+                if pinball_n >= 8:  # far more balls than any real round needs: something is off, back off
+                    log("pinball: too many presses without it ending, backing off")
+                    pinball_n = 0
+                    time.sleep(2)
+                    continue
                 pinball_n += 1
                 log(f"pinball: pressing bottom button #{pinball_n % 3 + 1}")
                 tap(PINBALL_BTNS[pinball_n % 3], 1.8)
