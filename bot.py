@@ -1075,12 +1075,23 @@ def find_ad_x_glyph(img):
 
 def find_skip_text(img):
     """A "Skip" / "Skip Ad" / "건너뛰기" button read as text in the top band of an ad (Meta / Audience Network videos draw
-    it as a pill with the word) -> centre or None. Also "Google Play": tapping it leaves to the Play Store,
-    which leave_other_app() force-stops and returns from (nothing is ever installed) - faster than waiting out
-    an ad with no real skip/X on it."""
+    it as a pill with the word) -> centre or None. The ad network itself only shows/enables this after its own
+    countdown, so finding it already means it's safe to tap (the reward is secured)."""
     for b, t, _ in ocr(img[60:330, 0:1080])[0] or []:
         tt = t.strip().upper()
-        if tt.startswith("SKIP") or tt in ("건너뛰기", "광고 건너뛰기", "CLOSE", "닫기") or "GOOGLE PLAY" in tt:
+        if tt.startswith("SKIP") or tt in ("건너뛰기", "광고 건너뛰기", "CLOSE", "닫기"):
+            return int(sum(p[0] for p in b) / 4) + 40, int(sum(p[1] for p in b) / 4) + 60
+    return None
+
+
+def find_google_play_text(img):
+    """A "Google Play" banner/button, read as text in the top band of an ad -> centre or None. Unlike Skip,
+    this is often shown the whole time the ad plays, not gated by any countdown - only use this once
+    ad_playing(img) says the video itself is done, or tapping it can cut the video short before the reward
+    threshold. Tapping it leaves to the Play Store, which leave_other_app() force-stops and returns from
+    (nothing is ever installed) - faster than waiting out an ad with no real skip/X on it."""
+    for b, t, _ in ocr(img[60:330, 0:1080])[0] or []:
+        if "GOOGLE PLAY" in t.strip().upper():
             return int(sum(p[0] for p in b) / 4) + 40, int(sum(p[1] for p in b) / 4) + 60
     return None
 
@@ -1866,6 +1877,8 @@ def run_ads_only(max_ads):
                 leave_other_app(f)
             else:
                 xy = find_skip_text(img) or find_ad_close(img)
+                if not xy and not ad_playing(img):  # only once the video itself is done - don't cut it short
+                    xy = find_google_play_text(img)
                 if xy and adlearn.is_bad(img, xy[0], xy[1]):
                     xy = None
                 if xy:
@@ -2008,6 +2021,8 @@ def main():
                     leave_other_app(f)
                 else:
                     xy = find_skip_text(img) or find_ad_close(img)
+                    if not xy and not ad_playing(img):  # only once the video itself is done - don't cut it short
+                        xy = find_google_play_text(img)
                     if xy and adlearn.is_bad(img, xy[0], xy[1]):
                         xy = None
                     if xy:
