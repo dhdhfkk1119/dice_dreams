@@ -663,27 +663,32 @@ def find_video_bubble(img, thr=0.62):
     return best[1:] if best else None
 
 
-LOCK_TPL = cvio.imread(os.path.join(BASE_DIR, "lock_tpl.png"))  # the gold padlock+chain over a locked tile's WATCH
+LOCK_TPLS = [t for t in (
+    cvio.imread(os.path.join(BASE_DIR, "lock_tpl.png")),    # gold padlock+chain (milestone grid / VIDEO CRAZE)
+    cvio.imread(os.path.join(BASE_DIR, "lock_tpl2.png")),   # plain corner padlock, no chain (paid OFFER tiles)
+) if t is not None]
 LOCK_SCALES = (0.6, 0.8, 1.0, 1.2, 1.5)
-LOCK_THR = 0.69  # measured: locked tiles score >=0.73, unlocked (just the tile's own gold border) <=0.65
+LOCK_THR = 0.69  # measured across both templates/layouts: locked tiles score >=0.73, unlocked <=0.67
 
 
 def watch_locked(img, x, y):
-    """A reward-path tile's WATCH button sits near a gold padlock+chain icon when that tile is not the
-    unlocked/current one yet (milestone grids and vertical lists like VIDEO CRAZE: only one tile is open, the
-    rest stay locked until earlier ones are claimed). Looked for around the button, at any scale/position,
-    since the lock sits in a different spot in each layout - a plain gold tile border never matches it."""
-    if LOCK_TPL is None:
+    """A reward-path tile's button sits near a gold padlock icon when that tile is locked (milestone grids,
+    VIDEO CRAZE, and paid OFFER ladders all use this, in a couple of different icon styles and positions - a
+    chain hanging below the button, or a plain corner padlock well above it). Search a generous area around
+    the button at any scale, since the lock sits in a different spot in each layout; a plain gold tile border
+    never matches either template."""
+    if not LOCK_TPLS:
         return False
-    y0, y1 = max(0, y - 60), min(img.shape[0], y + 220)
-    x0, x1 = max(0, x - 280), min(img.shape[1], x + 280)
+    y0, y1 = max(0, y - 420), min(img.shape[0], y + 220)
+    x0, x1 = max(0, x - 300), min(img.shape[1], x + 300)
     region = img[y0:y1, x0:x1]
-    for s in LOCK_SCALES:
-        t = cv2.resize(LOCK_TPL, None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_LINEAR)
-        if t.shape[0] >= region.shape[0] or t.shape[1] >= region.shape[1]:
-            continue
-        if cv2.matchTemplate(region, t, cv2.TM_CCOEFF_NORMED).max() >= LOCK_THR:
-            return True
+    for tpl in LOCK_TPLS:
+        for s in LOCK_SCALES:
+            t = cv2.resize(tpl, None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_LINEAR)
+            if t.shape[0] >= region.shape[0] or t.shape[1] >= region.shape[1]:
+                continue
+            if cv2.matchTemplate(region, t, cv2.TM_CCOEFF_NORMED).max() >= LOCK_THR:
+                return True
     return False
 
 
@@ -987,11 +992,39 @@ def video_craze_screen(img):
 
 
 def paid_offer_screen(img):
-    """A real-money purchase funnel ('... OFFER', e.g. 'ROYAL ARMOR OFFER'): a ladder of tiles where only the
-    paid one is open and every 'FREE' tile below it sits behind a padlock until that paid one is bought. Never
-    worth entering - the free dice/coins it chains to cost money first - so just close it, never tap inside."""
+    """A real-money purchase funnel ('... OFFER', e.g. 'ROYAL ARMOR OFFER'): a ladder of tiles, some genuinely
+    FREE (no padlock) and some chained behind a paid tile (locked until that one is bought). Never buy
+    anything here - claim what's actually free, then leave once none are left."""
     texts = " ".join(t for _, t, _ in ocr(img[150:500])[0] or []).upper()
     return bool(re.search(r"\bOFFER\b", texts)) and "CRAZE" not in texts
+
+
+def use_paid_offer():
+    """On a paid '... OFFER' ladder: claim every FREE tile that isn't locked (the padlock+chain means it sits
+    behind a paid one), then close - once none are unlocked, the rest all need a real purchase first, which
+    this bot never does."""
+    claimed = 0
+    for _ in range(8):
+        img = shot()
+        if not paid_offer_screen(img):
+            break
+        found = ocr(img)[0] or []
+        wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
+              if t.strip().upper() == "FREE"]
+        wt = [p for p in wt if not watch_locked(img, *p)]
+        if not wt:
+            break
+        log(f"paid offer: claiming free tile #{claimed + 1} at {wt[0]}")
+        tap(wt[0], 1.5)
+        claimed += 1
+    log(f"paid offer: claimed {claimed} free tile(s), closing")
+    img = shot()
+    xy = find_close_x(img)
+    if xy:
+        tap(xy, 1.5)
+    elif paid_offer_screen(img):
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    return claimed
 
 
 def use_video_craze():
@@ -1956,10 +1989,8 @@ def main():
             if video_craze_screen(img):  # its own event: watch every unlocked tier, not just one popup watch
                 use_video_craze()
                 continue
-            if paid_offer_screen(img):  # a real-money funnel: close it, never tap its chained "FREE" tiles
-                xy = find_close_x(img)
-                log(f"paid offer screen: closing at {xy}" if xy else "paid offer screen: no X found, BACK")
-                tap(xy, 1.5) if xy else adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            if paid_offer_screen(img):  # a real-money funnel: claim whatever is actually free, then leave
+                use_paid_offer()
                 continue
             f = focus()
             if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is in front
