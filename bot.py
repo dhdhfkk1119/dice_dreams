@@ -678,7 +678,22 @@ LOCK_SCALES = (0.6, 0.8, 1.0, 1.2, 1.5)
 LOCK_THR = 0.69  # measured across both templates/layouts: locked tiles score >=0.73, unlocked <=0.67
 
 
-def watch_locked(img, x, y):
+def tile_lock_score(img, x, y):
+    """Best padlock-template score in the small area just under-right of a tile's WATCH button, where that tile's
+    own lock / chain hangs. Measured on the ENDLESS REWARDS grid: locked tiles 0.9+, the open one 0.37 - far more
+    reliable than the generous search below, which also sees neighbouring tiles' locks."""
+    reg = img[y + 10:min(img.shape[0], y + 170), max(0, x - 70):x + 170]
+    best = 0.0
+    for tpl in LOCK_TPLS or []:
+        for s_ in LOCK_SCALES:
+            t = cv2.resize(tpl, None, fx=s_, fy=s_, interpolation=cv2.INTER_AREA if s_ < 1 else cv2.INTER_LINEAR)
+            if t.shape[0] >= reg.shape[0] or t.shape[1] >= reg.shape[1]:
+                continue
+            best = max(best, float(cv2.matchTemplate(reg, t, cv2.TM_CCOEFF_NORMED).max()))
+    return best
+
+
+def watch_locked(img, x, y, grid=False):
     """A reward-path tile's button sits near a gold padlock icon when that tile is locked (milestone grids,
     VIDEO CRAZE, and paid OFFER ladders all use this, in a couple of different icon styles and positions - a
     chain hanging below the button, or a plain corner padlock well above it). Search a generous area around
@@ -686,6 +701,8 @@ def watch_locked(img, x, y):
     never matches either template."""
     if not LOCK_TPLS:
         return False
+    if grid:  # several WATCH tiles side by side: only this tile's own lock counts
+        return tile_lock_score(img, x, y) >= 0.6
     y0, y1 = max(0, y - 420), min(img.shape[0], y + 220)
     x0, x1 = max(0, x - 300), min(img.shape[1], x + 300)
     region = img[y0:y1, x0:x1]
@@ -1000,7 +1017,7 @@ def video_craze_screen(img):
     """True on the VIDEO CRAZE event page (its own popup: a vertical list of WATCH tiers, each unlocking the
     next), found by its title in the top band."""
     texts = "".join(t for _, t, _ in ocr(img[150:700])[0] or []).upper().replace(" ", "")
-    return "CRAZE" in texts
+    return "CRAZE" in texts or "ENDLESSREWARDS" in texts or "ENDLESS" in texts
 
 
 def paid_offer_screen(img):
@@ -1043,14 +1060,16 @@ def use_video_craze():
     """Watch every unlocked tier of VIDEO CRAZE back-to-back (bypasses the regular popup-WATCH rate limit:
     this event is meant to be cleared in one go, each watch unlocking the next tier down)."""
     watched = 0
-    for _ in range(10):
+    for _ in range(14):
         img = shot()
         if not video_craze_screen(img):
             break
         found = ocr(img)[0] or []
         wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
               if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
-        wt = [p for p in wt if not watch_locked(img, *p)]
+        grid = len(wt) >= 3
+        wt = [p for p in wt if not watch_locked(img, *p, grid=grid)]
+        wt.sort(key=lambda q: (q[1], q[0]))   # the first open tile = the top-most / left-most
         if not wt:
             break
         log(f"video craze: tier #{watched + 1} at {wt[0]}")
@@ -2076,7 +2095,9 @@ def play(max_rolls):
                 continue
             wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
                   if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
-            wt = [p for p in wt if not watch_locked(img, *p)]  # skip reward-path tiles not unlocked yet
+            grid_n = len(wt)
+            wt = [p for p in wt if not watch_locked(img, *p, grid=grid_n >= 3)]  # skip tiles not unlocked yet
+            wt.sort(key=lambda q: (q[1], q[0]))
             _watch_times[:] = [x for x in _watch_times if time.time() - x < 300]
             if wt and len(_watch_times) < 3 and not re.search(r"[$₩€£]", " ".join(r[1] for r in found)):
                 # an offer popup with a WATCH (free video) button: take it, same as the lobby bubble
