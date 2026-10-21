@@ -200,6 +200,10 @@ def energy_est(img, last_was_roll):
     return v
 
 
+_max_energy = 50    # the cap shown next to the energy ("N/60"), updated on every read
+REFILL_TO_FULL = True   # after running dry, keep watching videos until the energy is back to its cap (not just 1)
+
+
 def bar_fill(img, max_e=50):
     """Energy from the bar itself (light-blue fill along the top and bottom edge of the bar, clear of the digits):
     ~0.95 at 50, 0.0 at 0. The bolt icon next to a one-digit number is read as a "4" ("49/50" for 9, "40/50" for 0),
@@ -224,7 +228,7 @@ def _fix_by_bar(img, n, max_e=50):
 def energy(img):
     """Dice pool = energy N (from "N/50") + the "+M extra" rolls under the bar. One roll of xN takes N from this
     pool (the extras go first: the N/50 number stays put while they last). None when the bar is not readable."""
-    global free_mode
+    global free_mode, _max_energy
     free_mode = False
     n = extra = None
     max_e = 50
@@ -247,6 +251,7 @@ def energy(img):
     if n is None:
         return None
     n = _fix_by_bar(img, n, max_e)
+    _max_energy = max_e
     return n + (extra or 0)
 
 
@@ -2235,9 +2240,15 @@ def play(max_rolls):
                 tap(UNKNOWN_TAPS[unknown % len(UNKNOWN_TAPS)], 1.0)
             continue
         unknown = 0
-        if refilling and e >= 1:
+        if refilling and e >= (_max_energy if REFILL_TO_FULL else 1):
             refilling = False
-            log(f"energy back to {e}: back to playing")
+            log(f"energy back to {e} (cap {_max_energy}): back to playing")
+        if refilling and e >= 1:
+            if time.time() - _last_ad > 900:   # no video has been available for 15 min: play what we have instead
+                refilling = False
+                log(f"no video for 15 min and energy is {e}: back to playing")
+            else:
+                e = 0   # still below the cap: stay in video mode (the branch below builds with coins, then watches ads)
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
             if find_close_x(img) is not None:  # a popup sits on top of the board: never tap ROLL/xN
