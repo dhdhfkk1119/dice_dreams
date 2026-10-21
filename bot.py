@@ -782,6 +782,9 @@ def recover(img, stuck):
     found = ocr(img)[0] or []
     texts = " ".join(r[1] for r in found).upper()
     pay = bool(re.search(r"[$₩€£]|W\s?\d|\d\s*원|UNLOCK|GOOGLE PLAY", texts))
+    if invite_page(texts):
+        leave_invite(img)
+        return
     # 1. exits we recognise
     for xy in (find_close_x(img), adlearn.find_dialog_x(img), find_back_arrow(img), find_skip_text(img)):
         if xy:
@@ -1063,6 +1066,21 @@ def use_video_craze():
         if xy:
             tap(xy, 1.2)
     return watched > 0
+
+
+def invite_page(texts):
+    """The INVITE FRIENDS menu entry / page: nobody is ever invited (the user's rule) - only closed with X / BACK."""
+    return bool(re.search(r"INVITE|초대", texts))
+
+
+def leave_invite(img):
+    xy = find_close_x(img) or find_back_arrow(img, 0.45) or adlearn.find_dialog_x(img)
+    log("invite page: leaving without inviting anyone" + (f" (exit at {xy})" if xy else " (BACK)"))
+    if xy:
+        tap(xy, 1.5)
+    else:
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+        time.sleep(1.2)
 
 
 def is_ad_any(f):
@@ -2053,6 +2071,9 @@ def play(max_rolls):
                         ride_ad()
                 continue
             found = ocr(img)[0] or []
+            if invite_page(" ".join(r[1] for r in found).upper()):
+                leave_invite(img)
+                continue
             wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
                   if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
             wt = [p for p in wt if not watch_locked(img, *p)]  # skip reward-path tiles not unlocked yet
