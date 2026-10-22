@@ -33,6 +33,7 @@ OUT = os.path.join(BASE_DIR, "shots")
 ROLL = (538, 1977)
 HAMMER = (948, 2211)
 HAMMER_BADGE = (970, 2115, 1055, 2185)  # red badge on the hammer icon: how many upgrades are affordable right now
+HAMMER_DISCOUNT_BOX = (750, 2200, 1080, 2300)  # "20% OFF" ribbon under the hammer icon, while a build discount is on
 SCENE = (540, 500)        # empty scene area: closes the build panel
 ROLL_WAIT = 1.3  # seconds between ROLL taps
 MAX_IDLE = 240  # x 15 s (1 hour) with no energy before giving up
@@ -880,6 +881,16 @@ def hammer_badge(img):
     return _num_from(img, HAMMER_BADGE, 3)
 
 
+def hammer_discount_active(img):
+    """True while the "20% OFF" ribbon is showing under the hammer icon (a timed build-price discount,
+    usually just a few minutes) - prices read off the buttons already reflect it, but while it's on, grab
+    whatever single step is affordable right away instead of saving up for the whole card, so the window
+    isn't missed."""
+    x0, y0, x1, y1 = HAMMER_DISCOUNT_BOX
+    texts = "".join(t for _, t, _ in ocr(img[y0:y1, x0:x1])[0] or []).upper().replace(" ", "")
+    return "OFF" in texts
+
+
 def trail_tokens_screen(img):
     return _num_from(img, TRAIL_TOKENS_BOX, 2)
 
@@ -1520,9 +1531,12 @@ def build_all():
     building leaves the strip, so the next one becomes the front). If the front card is too expensive we
     wait for more coins; we never buy a card further back just because coins are spare.
     Returns (bought, price of the front card we are saving up for or None)."""
+    discount = hammer_discount_active(shot())  # the "20% OFF" ribbon only shows in the lobby, before the panel opens
     if not open_panel():
         log("build: could not open the build panel")
         return 0, None
+    if discount:
+        log("build: 20% OFF is active - grabbing single steps instead of saving up for a whole card")
     global _last_front_price
     bought, target_price, stalls, recog_retry, next_img = 0, None, 0, 0, None
     if time.time() - _kc_time > 600:  # how much does the whole kingdom still cost? (decides "money is plentiful")
@@ -1590,11 +1604,13 @@ def build_all():
         crowns = crowns_filled(img, x)
         need_total = estimate_total_to_complete(price, crowns)
         target_price = need_total
-        if need_total > c:
+        afford_gate = price if discount else need_total  # 20% off: grab this step now, don't wait on the rest
+        if afford_gate > c:
             global _hold_need, _hold_time
             _hold_need, _hold_time = need_total, time.time()
-            log(f"build: front card {price} ({crowns}/5 crowns) - saving up to finish it in one go "
-                f"(~{need_total:,.0f} total, have {c})")
+            log(f"build: front card {price} ({crowns}/5 crowns) - saving up "
+                + (f"for this step (20% off active, ~{afford_gate:,.0f})" if discount
+                   else f"to finish it in one go (~{afford_gate:,.0f} total)") + f", have {c}")
             if time.time() - _kc_time > 600:  # how far is the next KINGDOM? (remaining steps and coins)
                 total, n_cards = scan_kingdom_cost()
                 prog = kingdom_progress(shot())
