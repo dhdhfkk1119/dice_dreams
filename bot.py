@@ -2342,7 +2342,11 @@ def play(max_rolls):
                 continue
             # ads are watched only once energy and money are both spent (see the e < 1 branch below);
             # while there's still dice or coins to use, just keep rolling/building.
-            # priority 1: money -> kingdom upgrades. The hammer's red badge counts upgrades affordable right
+            # priority 1: TRAIL tokens >= 200 -> spend them at x50 first.
+            if not free_mode and maybe_trail(img):
+                cur_step = None
+                continue
+            # priority 2: money -> kingdom upgrades. The hammer's red badge counts upgrades affordable right
             # now and updates live, so check it every loop (no throttle) instead of waiting on a timer.
             if not free_mode:
                 hb = hammer_badge(img)
@@ -2380,9 +2384,6 @@ def play(max_rolls):
                             if n:
                                 cur_step = None
                                 continue
-            if not free_mode and maybe_trail(img):
-                cur_step = None
-                continue
             if not free_mode:
                 # the "MAX xN" bubble names the best multiplier on offer right now: match it when it's shown.
                 # When it isn't shown at all, leave the multiplier alone and just roll.
@@ -2416,25 +2417,27 @@ def play(max_rolls):
             rolls += 1
             last_was_roll = True
             continue
-        # no energy: spend coins on the kingdom, then watch ads back-to-back until any energy is back
+        # no energy: watch ads (one may grant the "20% OFF" hammer discount) until any energy is back.
+        # Building here only happens while that discount is active - otherwise just wait for ads/energy.
         if not refilling:
             global _ads_in_batch
             refilling = True
             _ads_in_batch = 0
             log("dice/money used up: watching ads until energy is back")
-        c = coins(img)
-        # `need` is only a hint to avoid opening the panel every 15 s; it is dropped after a new
-        # kingdom (prices change) and every 8th idle loop, so a stale value can never block building
         global _kingdom_changed
-        if idle % 8 == 0 or _kingdom_changed:
-            need = 0
-            _kingdom_changed = False
-        if c is None or c >= need:
-            n, min_price = build_all()
-            need = min_price or 0
-            if n:
+        c = coins(img)
+        if hammer_discount_active(img):
+            # `need` is only a hint to avoid opening the panel every 15 s; it is dropped after a new
+            # kingdom (prices change) and every 8th idle loop, so a stale value can never block building
+            if idle % 8 == 0 or _kingdom_changed:
                 need = 0
-                continue
+                _kingdom_changed = False
+            if c is None or c >= need:
+                n, min_price = build_all()
+                need = min_price or 0
+                if n:
+                    need = 0
+                    continue
         idle += 1
         cur_step = None
         # no energy and nothing to build: the VIDEO bonus-ad icon pays more than the lobby bubble, so try it
