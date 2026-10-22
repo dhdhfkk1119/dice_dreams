@@ -2,7 +2,7 @@
 
 Rule: coins >= cheapest building -> build; otherwise ROLL. Stops when energy is 0,
 after MAX_ROLLS, or when an unknown screen persists (screenshot saved for review).
-Usage: python bot.py [max_rolls]
+Usage: python bot.py [max_rolls]   (no argument = no limit)
 """
 import os, re, subprocess, sys, time
 
@@ -2475,7 +2475,9 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1].lower() == "ads":
         run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
         return
-    play(int(sys.argv[1]) if len(sys.argv) > 1 else 20)
+    # no argument = play without a roll limit (launching `.ot.py` from PowerShell can drop the arguments, which used
+    # to fall back to 20 rolls and end the run: the "done 20 rolls" stops seen in the log)
+    play(int(sys.argv[1]) if len(sys.argv) > 1 else 1_000_000)
 
 
 if __name__ == "__main__":
