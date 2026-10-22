@@ -1929,7 +1929,7 @@ def claim_weekly():
     return claimed
 
 
-NO_AD_SWITCH_S = 60  # ads-only mode: no video found for this long -> fall into normal play instead of idling
+NO_AD_SWITCH_S = 120  # ads-only mode: no video found for this long -> fall into normal play instead of idling
 
 
 def run_ads_only(max_ads):
