@@ -1935,7 +1935,7 @@ def claim_weekly():
     return claimed
 
 
-NO_AD_SWITCH_S = 120  # ads-only mode: no video found for this long -> fall into normal play instead of idling
+NO_AD_SWITCH_S = 60  # ads-only mode: no video found for this long -> fall into normal play instead of idling
 
 
 def run_ads_only(max_ads):
@@ -2017,6 +2017,10 @@ def play(max_rolls):
     no_energy_until = 0.0
     need = 0  # coins needed before trying to build again
     refilling = False  # True while watching ads back-to-back after money+energy both ran out, until any energy is back
+    e0 = energy(shot())
+    if e0 is not None and e0 < 60:
+        refilling = True
+        log(f"starting with {e0} energy (<60): watching ads first")
     while rolls < max_rolls:
         img = shot()
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
