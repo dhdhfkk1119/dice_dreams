@@ -202,7 +202,8 @@ def energy_est(img, last_was_roll):
 
 
 _max_energy = 50    # the cap shown next to the energy ("N/60"), updated on every read
-REFILL_TO_FULL = True   # after running dry, keep watching videos until the energy is back to its cap (not just 1)
+REFILL_TO_FULL = False  # off per the user: once energy hits 0, use whatever comes back right away - never hold
+                         # off until a full cap (or a 15 min timeout) when there's already dice to roll with
 
 
 def bar_fill(img, max_e=50):
