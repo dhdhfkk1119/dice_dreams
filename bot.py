@@ -46,7 +46,7 @@ MIN_ENERGY = 3  # one ROLL costs xN energy (x3 -> 3); below this a "buy rolls" o
 BACK_BTN = (98, 281)      # back arrow (top-left) on full-screen event pages
 BACK_BTNS = [(98, 281), (105, 349)]  # event pages / the side menu
 SAFE_TAPS = [(540, 1000), (540, 1250), (540, 90), (BACK_BTN), (200, 1300), (540, 1000), (800, 1300)]
-UNKNOWN_TAPS = [(900, 1000), (540, 1000), (900, 600), (540, 1250), (900, 1400), (540, 700), (200, 1000)]  # right side first
+UNKNOWN_TAPS = [(540, 1000), (540, 1250), (900, 1400), (540, 700), (200, 1000)]
 ROLL_BOX = (400, 1830, 680, 2100)
 MULT_BTN = (763, 1915)
 MULT_BOX = (680, 1878, 860, 1960)  # the xN badge's own number only (kept clear of MAX_BOX above it)
@@ -55,7 +55,7 @@ STEAL = (540, 1919)
 TARGET = (532, 819)       # attack: castle pin
 SLING = (540, 1640, 540, 2050)  # pull straight down -> bullseye (tested: x1.5 bullseye)
 BUTTONS = {"COLLECT", "CLAIM", "OK", "CONTINUE", "NEXT", "AWESOME", "GREAT", "YAY", "COOL", "TAP TO CONTINUE",
-           "AMAZING", "FREE", "WOW", "NICE", "PERFECT", "EXCELLENT", "SUPER", "GOT IT", "LET'S GO"}  # green "go on" / free-gift buttons
+           "AMAZING", "WOW", "NICE", "PERFECT", "EXCELLENT", "SUPER", "GOT IT", "LET'S GO"}  # green "go on" buttons
 NEUTRAL = (540, 1450)     # dismisses reward popups
 COIN_BOX = (200, 100, 650, 300)
 ENERGY_BOX = (250, 2150, 800, 2320)
@@ -824,7 +824,8 @@ def recover(img, stuck):
             return
     # 2. escalate with time
     if stuck < 240:
-        cands = adlearn.candidates(img)
+        cands = [c for c in adlearn.candidates(img)
+                 if not (VIDEO_BOX[0] <= c[0] <= VIDEO_BOX[2] and VIDEO_BOX[1] <= c[1] <= VIDEO_BOX[3])]
         if cands and not pay and n % 2 == 1:
             c = cands[(n // 2) % len(cands)]
             log(f"recovery: trying the corner glyph at {c[:2]}")
@@ -1026,46 +1027,31 @@ def maybe_trail(img):
 
 
 def video_craze_screen(img):
-    """True on the VIDEO CRAZE event page (its own popup: a vertical list of WATCH tiers, each unlocking the
-    next), found by its title in the top band."""
-    texts = "".join(t for _, t, _ in ocr(img[150:700])[0] or []).upper().replace(" ", "")
-    return "CRAZE" in texts or "ENDLESSREWARDS" in texts or "ENDLESS" in texts
+    """True on a video-reward tier page such as VIDEO CRAZE or SHOW TIME JOURNEY."""
+    texts = "".join(t for _, t, _ in ocr(img[:700])[0] or []).upper().replace(" ", "")
+    return ("CRAZE" in texts or "ENDLESSREWARDS" in texts or "ENDLESS" in texts
+            or ("SHOWTIME" in texts and "JOURNEY" in texts))
 
 
 def paid_offer_screen(img):
-    """A real-money purchase funnel ('... OFFER', e.g. 'ROYAL ARMOR OFFER'): a ladder of tiles, some genuinely
-    FREE (no padlock) and some chained behind a paid tile (locked until that one is bought). Never buy
-    anything here - claim what's actually free, then leave once none are left."""
-    texts = " ".join(t for _, t, _ in ocr(img[150:500])[0] or []).upper()
-    return bool(re.search(r"\bOFFER\b", texts)) and "CRAZE" not in texts
+    """An offer popup, including Chef's Reserve: never treat its FREE tiles as ordinary reward buttons."""
+    texts = "".join(t for _, t, _ in ocr(img[150:700, 150:min(900, img.shape[1])])[0] or []).upper()
+    compact = re.sub(r"[^A-Z]", "", texts)
+    return ("OFFER" in compact or "CHEFSRESERVE" in compact or "CHEFSRESERV" in compact) \
+        and "CRAZE" not in compact
 
 
 def use_paid_offer():
-    """On a paid '... OFFER' ladder: claim every FREE tile that isn't locked (the padlock+chain means it sits
-    behind a paid one), then close - once none are unlocked, the rest all need a real purchase first, which
-    this bot never does."""
-    claimed = 0
-    for _ in range(8):
-        img = shot()
-        if not paid_offer_screen(img):
-            break
-        found = ocr(img)[0] or []
-        wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
-              if t.strip().upper() == "FREE"]
-        wt = [p for p in wt if not watch_locked(img, *p)]
-        if not wt:
-            break
-        log(f"paid offer: claiming free tile #{claimed + 1} at {wt[0]}")
-        tap(wt[0], 1.5)
-        claimed += 1
-    log(f"paid offer: claimed {claimed} free tile(s), closing")
+    """Leave offer screens without pressing their FREE tiles or any purchase controls."""
     img = shot()
     xy = find_close_x(img)
     if xy:
+        log(f"offer screen: closing without selecting tiles at {xy}")
         tap(xy, 1.5)
     elif paid_offer_screen(img):
+        log("offer screen: no close button found; pressing BACK without selecting tiles")
         adb("shell", "input", "keyevent", "KEYCODE_BACK")
-    return claimed
+    return 0
 
 
 def use_video_craze():
@@ -1097,18 +1083,25 @@ def use_video_craze():
         found = ocr(img)[0] or []
         wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
               if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
-        grid = len(wt) >= 3
-        wt = [p for p in wt if not watch_locked(img, *p, grid=grid)]
-        wt.sort(key=lambda q: (q[1], q[0]))   # the first open tile = the top-most / left-most
         if not wt:
+            log("video event: no WATCH buttons detected")
             break
-        log(f"video craze: tier #{watched + 1} at {wt[0]}")
-        tap(wt[0], 3)
-        if not is_ad_focus(focus()):
-            break  # the tap did nothing (e.g. daily watch limit reached): stop, don't loop forever
-        watched += 1
-        ride_ad()
-    log(f"video craze: done, watched {watched} tier(s)")
+        # Try one WATCH at a time, preferring buttons without a detected lock and then the lowest visible tier.
+        # Some Journey chains are visually subtle, so validate each tap by checking that an ad actually opened.
+        wt.sort(key=lambda p: (watch_locked(img, *p, grid=True), -p[1], p[0]))
+        started = False
+        for hit in wt:
+            log(f"video event: trying WATCH tier at {hit}")
+            tap(hit, 2.0)
+            if is_ad_focus(focus()):
+                watched += 1
+                ride_ad()
+                started = True
+                break
+            log(f"video event: no ad opened at {hit}; trying the next WATCH")
+        if not started:
+            break
+    log(f"video event: done, watched {watched} tier(s)")
     img = shot()
     if video_craze_screen(img):
         xy = find_close_x(img)
@@ -1212,28 +1205,42 @@ def watch_ad(img=None, max_s=150):
 
 
 VIDEO_BOX = (700, 200, 1080, 1050)  # lobby, right side icon stack: where the "VIDEO" bonus-ad icon can be
+VIDEO_ICON_TPL = cvio.imread(os.path.join(BASE_DIR, "video_icon_tpl.png"))
+VIDEO_ICON_SCALES = (0.55, 0.7, 0.85, 1.0, 1.15, 1.35, 1.55, 1.8, 2.0)
+VIDEO_ICON_THR = 0.66
 
 
 def try_video_event(img=None):
-    """Tap the VIDEO bonus-ad icon, found by its text - the right-side icon stack reorders depending on what's
-    currently active, so a fixed position can land on a different icon (e.g. a paid OFFER) once VIDEO isn't
-    there at all. Only counts as a watch (pays more than the regular lobby bubble) when it's actually off
-    cooldown - a tap while it's still counting down does nothing, which is how this tells the two apart."""
+    """Tap only the visually matched VIDEO icon in the lobby's changing right-side icon stack."""
     global _last_ad
     img = shot() if img is None else img
-    if find_close_x(img) is not None or not roll_visible(img):
+    if VIDEO_ICON_TPL is None or find_close_x(img) is not None or not roll_visible(img):
         return False
     x0, y0, x1, y1 = VIDEO_BOX
-    found = ocr(img[y0:y1, x0:x1])[0] or []
-    hit = next(((int(sum(p[0] for p in b) / 4) + x0, int(sum(p[1] for p in b) / 4) + y0)
-                for b, t, _ in found if t.strip().upper() == "VIDEO"), None)
-    if hit is None:
-        return False  # no VIDEO icon right now: let the caller fall back to the regular lobby bubble
+    region = img[y0:y1, x0:x1]
+    gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
+    template = cv2.cvtColor(VIDEO_ICON_TPL, cv2.COLOR_BGR2GRAY)
+    best = None
+    for scale in VIDEO_ICON_SCALES:
+        scaled = cv2.resize(template, None, fx=scale, fy=scale,
+                            interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+        if scaled.shape[0] >= gray.shape[0] or scaled.shape[1] >= gray.shape[1]:
+            continue
+        result = cv2.matchTemplate(gray, scaled, cv2.TM_CCOEFF_NORMED)
+        _, score, _, loc = cv2.minMaxLoc(result)
+        if best is None or score > best[0]:
+            best = (score, scale, loc)
+    if best is None or best[0] < VIDEO_ICON_THR:
+        return False  # no confident VIDEO icon match: never tap a different offer in its place
+    _, scale, (left, top) = best
+    hit = (x0 + left + round(VIDEO_ICON_TPL.shape[1] * scale / 2),
+           y0 + top + round(VIDEO_ICON_TPL.shape[0] * scale / 2))
+    log(f"video event: matched VIDEO icon at {hit} (image score {best[0]:.2f})")
     tap(hit, 2.0)
     if not is_ad_focus(focus()):  # still on cooldown: the tap did nothing
         return False
     _last_ad = time.time()
-    log(f"video event: off cooldown at {hit}, watching the bonus ad")
+    log("video event: off cooldown, watching the bonus ad")
     ride_ad()
     return True
 
@@ -1459,7 +1466,6 @@ COMPLETE_BOX = (0, 1400, 1080, 1700)    # build panel: the "KINGDOM n" tab (y~14
 # (video) COMPLETE NOW" bubble hovers above the front unfinished card (its x moves)
 
 
-_watch_times = []  # when a popup WATCH button was pressed lately
 _cn_times = []   # when the FREE COMPLETE NOW button was pressed lately
 
 
@@ -2129,20 +2135,6 @@ def play(max_rolls):
             if invite_page(" ".join(r[1] for r in found).upper()):
                 leave_invite(img)
                 continue
-            wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
-                  if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
-            grid_n = len(wt)
-            wt = [p for p in wt if not watch_locked(img, *p, grid=grid_n >= 3)]  # skip tiles not unlocked yet
-            wt.sort(key=lambda q: (q[1], q[0]))
-            _watch_times[:] = [x for x in _watch_times if time.time() - x < 300]
-            if wt and len(_watch_times) < 3 and not re.search(r"[$₩€£]", " ".join(r[1] for r in found)):
-                # an offer popup with a WATCH (free video) button: take it, same as the lobby bubble
-                _watch_times.append(time.time())
-                log(f"popup WATCH button at {wt[0]}: watching the video")
-                tap(wt[0], 3)
-                if is_ad_focus(focus()):
-                    ride_ad()
-                continue
             for b, t, _ in found:  # game guide: "TAP & HOLD" with a hand on the target just below the words
                 if re.search(r"TAP\s*[&8A]?\s*(AND\s*)?HOLD", t.strip().upper()):
                     hx = int(sum(p[0] for p in b) / 4)
@@ -2156,7 +2148,6 @@ def play(max_rolls):
             if hx is not None:
                 continue
             all_txt = " ".join(r[1] for r in found).upper()
-            locked = "UNLOCK" in all_txt or bool(re.search(r"[$₩€£]|W\s?\d", all_txt))  # offer pages: chained FREE, prices
             now_b = time.time()
             for k in [k for k, v in btn_hist.items() if now_b - v[1] > 90]:
                 del btn_hist[k]
@@ -2165,16 +2156,14 @@ def play(max_rolls):
                 if tok in BUTTONS:
                     cx = int(sum(p[0] for p in b) / 4)
                     cy = int(sum(p[1] for p in b) / 4)
-                    if tok == "FREE" and locked:
-                        continue  # a FREE that sits behind a padlock / on a paid offer page is not a gift
                     key = (tok, cx // 50, cy // 50)
                     n_pressed, last_t = btn_hist.get(key, (0, 0))
                     if now_b - last_t > 12:   # a fresh appearance of the button, not a repeat on the same stuck screen
                         n_pressed = 0
-                    if n_pressed >= (3 if tok == "FREE" else 6):
+                    if n_pressed >= 6:
                         continue  # pressed again and again with no effect: leave it, close the page with its X
                     btn_hist[key] = (n_pressed + 1, now_b)
-                    log(f"button '{t}' at {cx},{cy}" + (f" (press {n_pressed + 1}/3)" if tok == "FREE" or n_pressed else ""))
+                    log(f"button '{t}' at {cx},{cy}" + (f" (press {n_pressed + 1}/6)" if n_pressed else ""))
                     tap((cx, cy), 1.0)
                     break
             else:
