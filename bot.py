@@ -36,7 +36,6 @@ HAMMER_BADGE = (970, 2115, 1055, 2185)  # red badge on the hammer icon: how many
 HAMMER_DISCOUNT_BOX = (750, 2200, 1080, 2300)  # "20% OFF" ribbon under the hammer icon, while a build discount is on
 SCENE = (540, 500)        # empty scene area: closes the build panel
 ROLL_WAIT = 1.3  # seconds between ROLL taps
-MAX_IDLE = 240  # x 15 s (1 hour) with no energy before giving up
 PINBALL_BTNS = [(538, 2042), (228, 2042), (848, 2042)]  # pinball game: the three pink buttons
 FIGHT_MOVES = [(197, 2059), (539, 2059), (883, 2059)]  # fist / paper / scissors buttons
 ANYWHERE = (540, 1000)
@@ -202,8 +201,7 @@ def energy_est(img, last_was_roll):
 
 
 _max_energy = 50    # the cap shown next to the energy ("N/60"), updated on every read
-REFILL_TO_FULL = False  # off per the user: once energy hits 0, use whatever comes back right away - never hold
-                         # off until a full cap (or a 15 min timeout) when there's already dice to roll with
+REFILL_TARGET = 60  # keep watching available lobby ads until at least 60 energy is available
 
 
 def bar_fill(img, max_e=50):
@@ -648,28 +646,62 @@ def go_to_card(card, coins_now):
     return False
 
 
-VID_TPL = cvio.imread(os.path.join(BASE_DIR, "vid_tpl84.png"))  # the purple clapper + dice bubble: "watch a video for dice"
 GAME_PKG = "com.superplaystudios.dicedreams"
 _last_ad = 0.0
 _ads_in_batch = 0       # videos watched in the current refill (reset when a new refill starts; just for logging)
 _ads_resume = 0.0       # (kept for the one-hour stall fallback)
 
+VIDEO_BUBBLE_TPLS = [
+    (name, cvio.imread(os.path.join(BASE_DIR, name), 0))
+    for name in ("vid_tpl.png", "vid_tpl100.png", "vid_tpl84.png", "vid_tpl_b.png")
+]
+VIDEO_BUBBLE_SCALES = (
+    0.55, 0.65, 0.75, 0.85, 0.95, 1.05, 1.15, 1.3, 1.45, 1.6,
+    1.8, 2.0, 2.25, 2.5, 2.75, 3.0, 3.5, 4.0, 4.5,
+)
+VIDEO_BUBBLE_THR = 0.78
+_video_bubble_misses = 0
 
-VID_TPL_B = cvio.imread(os.path.join(BASE_DIR, "vid_tpl_b.png"))   # the same bubble on a pale background (desert kingdom)
 
-
-def find_video_bubble(img, thr=0.62):
-    """Centre of the free-video bubble above the character in the lobby, or None (0.7 real / <=0.45 elsewhere)."""
+def find_video_bubble(img):
+    """Locate the lobby's free-video bubble by image matching at any on-screen size or position."""
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    search = cv2.resize(gray, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
     best = None
-    for tpl in (VID_TPL, VID_TPL_B):
+    for name, tpl in VIDEO_BUBBLE_TPLS:
         if tpl is None:
             continue
-        r = cv2.matchTemplate(img[300:1700], tpl, cv2.TM_CCOEFF_NORMED)
-        _, mx, _, loc = cv2.minMaxLoc(r)
-        if mx >= thr and (best is None or mx > best[0]):
-            h = tpl.shape[0] // 2
-            best = (mx, loc[0] + h, loc[1] + h + 300)
-    return best[1:] if best else None
+        for scale in VIDEO_BUBBLE_SCALES:
+            scaled = cv2.resize(
+                tpl, None, fx=scale * 0.5, fy=scale * 0.5,
+                interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC,
+            )
+            if min(scaled.shape) < 8 or scaled.shape[0] >= search.shape[0] or scaled.shape[1] >= search.shape[1]:
+                continue
+            result = cv2.matchTemplate(search, scaled, cv2.TM_CCOEFF_NORMED)
+            _, score, _, loc = cv2.minMaxLoc(result)
+            if best is None or score > best[0]:
+                best = (score, name, loc, scaled.shape[1], scaled.shape[0])
+    if best is None or best[0] < VIDEO_BUBBLE_THR:
+        return None
+    score, name, (left, top), width, height = best
+    hit = ((left + width // 2) * 2, (top + height // 2) * 2)
+    log(f"ad: matched lobby video bubble at {hit} (score {score:.2f}, {name})")
+    return hit
+
+
+def safe_game_yes(found):
+    """Return a YES button only on a clearly free in-game build/upgrade confirmation."""
+    texts = " ".join(text.upper() for _, text, _ in found)
+    if not any(word in texts for word in ("BUILD", "UPGRADE", "KINGDOM", "RESTORE", "COMPLETE", "FREE")):
+        return None
+    if any(word in texts for word in ("GOOGLE PLAY", "PURCHASE", "PAYMENT", "SPECIAL OFFER", "BUY", "GEM", "DIAMOND")) \
+            or any(symbol in texts for symbol in ("₩", "$", "€", "£", "원")):
+        return None
+    for box, text, _ in found:
+        if text.strip().upper().strip("!") == "YES":
+            return int(sum(point[0] for point in box) / 4), int(sum(point[1] for point in box) / 4)
+    return None
 
 
 LOCK_TPLS = [t for t in (
@@ -1191,15 +1223,26 @@ def find_ad_close_box(img):
 def watch_ad(img=None, max_s=150):
     """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game.
     No cap here: the caller (main loop) stops asking for more as soon as any energy is back."""
-    global _last_ad, _ads_in_batch
+    global _last_ad, _ads_in_batch, _video_bubble_misses
     img = shot() if img is None else img
     pos = find_video_bubble(img)
-    if pos is None or find_close_x(img) is not None or not roll_visible(img):
+    if pos is None:
+        _video_bubble_misses += 1
+        if _video_bubble_misses % 5 == 0 and roll_visible(img) and find_close_x(img) is None:
+            direction = (_video_bubble_misses // 5 - 1) % 2
+            start, end = ((820, 1050), (260, 1050)) if direction == 0 else ((260, 1050), (820, 1050))
+            if GAME_PKG in focus() and not is_ad_focus(focus()):
+                log("ad: bubble not visible; panning lobby camera to search")
+                adb("shell", "input", "swipe", str(start[0]), str(start[1]), str(end[0]), str(end[1]), "700")
+                time.sleep(1)
         return False
-    _last_ad = time.time()
+    _video_bubble_misses = 0
+    if find_close_x(img) is not None or not roll_visible(img):
+        return False
     tap(pos, 3)
     if not is_ad_focus(focus()):  # the bubble tap did not open a video: not an ad, do not count it
-        return True
+        return False
+    _last_ad = time.time()
     _ads_in_batch += 1
     log(f"ad: watching a free video #{_ads_in_batch} (refilling to 50 energy, bubble at {pos})")
     ride_ad()
@@ -2188,6 +2231,11 @@ def play(max_rolls):
                 adb("shell", "input", "keyevent", "KEYCODE_BACK")
                 time.sleep(1.5)
                 continue
+            yes = safe_game_yes(found)
+            if yes:
+                log(f"free game build/upgrade confirmation: pressing YES at {yes}")
+                tap(yes, 1.2)
+                continue
             if "LOADING" in texts or ("DICE DREAMS" in texts and "TOWN" in texts):  # splash: just wait
                 loading_n += 1
                 log("loading screen: waiting")
@@ -2321,15 +2369,11 @@ def play(max_rolls):
                 tap(UNKNOWN_TAPS[unknown % len(UNKNOWN_TAPS)], 1.0)
             continue
         unknown = 0
-        if refilling and e >= (_max_energy if REFILL_TO_FULL else 1):
+        if refilling and e >= REFILL_TARGET:
             refilling = False
-            log(f"energy back to {e} (cap {_max_energy}): back to playing")
+            log(f"energy back to {e} (target {REFILL_TARGET}): back to playing")
         if refilling and e >= 1:
-            if time.time() - _last_ad > 900:   # no video has been available for 15 min: play what we have instead
-                refilling = False
-                log(f"no video for 15 min and energy is {e}: back to playing")
-            else:
-                e = 0   # still below the cap: stay in video mode (the branch below builds with coins, then watches ads)
+            e = 0   # keep retrying ads instead of spending partial energy before the refill target
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
             if find_close_x(img) is not None:  # a popup sits on top of the board: never tap ROLL/xN
@@ -2451,9 +2495,6 @@ def play(max_rolls):
             claim_weekly()
             use_puzzle()
             continue
-        if idle > MAX_IDLE:
-            log("no energy for a long time, stopping")
-            return
         log(f"energy low, waiting (coins={c}, next build needs {need})")
         time.sleep(15)  # poll often: energy can jump (rewards) and popups may appear
     log("done", rolls, "rolls")
