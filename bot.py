@@ -693,7 +693,7 @@ def find_video_bubble(img):
 def safe_game_yes(found):
     """Return a YES button only on a clearly free in-game build/upgrade confirmation."""
     texts = " ".join(text.upper() for _, text, _ in found)
-    if not any(word in texts for word in ("BUILD", "UPGRADE", "KINGDOM", "RESTORE", "COMPLETE", "FREE")):
+    if not any(word in texts for word in ("BUILD", "UPGRADE", "KINGDOM", "RESTORE", "COMPLETE", "FREE", "FEED")):
         return None
     if any(word in texts for word in ("GOOGLE PLAY", "PURCHASE", "PAYMENT", "SPECIAL OFFER", "BUY", "GEM", "DIAMOND")) \
             or any(symbol in texts for symbol in ("₩", "$", "€", "£", "원")):
@@ -890,8 +890,11 @@ TRAIL_TOKENS_BOX = (330, 2090, 780, 2200)
 TRAIL_MULT_BOX = (730, 1840, 900, 1960)
 TRAIL_CYCLE = [1, 5, 10, 15, 20, 30, 50, 100, 200, 400, 600, 800, 1200, 2000]   # measured: one tap = next entry
 TRAIL_AT = 200        # start spending when this many tokens have piled up ...
-TRAIL_BEST = 50       # ... at x50 (as the user asked); with fewer than 50 left the bot just leaves the page
+TRAIL_BEST = 50       # spend at x50 when possible, then use the largest multiplier that fits the remainder
 _trail_check = 0.0
+PET_ICON = (115, 1650)
+PET_BADGE_BOX = (20, 1490, 245, 1810)
+NO_AD_REFILL_TIMEOUT_S = 180
 
 
 def _num_from(img, box, scale=2):
@@ -993,9 +996,8 @@ def use_trail():
             tap(hit or ANYWHERE, 1.0)
             continue
         tokens = trail_tokens_screen(img)
-        if tokens is None or tokens < TRAIL_BEST:
-            # fewer tokens than one x50 spin: leave at once and go back to the dice (as the user asked)
-            log(f"trail: {tokens} tokens left, below x{TRAIL_BEST}: leaving" if tokens is not None
+        if tokens is None or tokens < 1:
+            log(f"trail: {tokens} tokens left: leaving" if tokens is not None
                 else "trail: token count unreadable, leaving")
             break
         want = max([m for m in TRAIL_CYCLE if m <= min(TRAIL_BEST, tokens)] or [1])
@@ -1045,16 +1047,51 @@ def use_trail():
     return True
 
 
-def maybe_trail(img):
+def maybe_trail(img, min_tokens=TRAIL_AT, force=False):
     """Lobby check, at most every 2 minutes: TRAIL badge >= TRAIL_AT -> spend them."""
     global _trail_check
-    if time.time() - _trail_check < 120:
+    if not force and time.time() - _trail_check < 120:
         return False
     _trail_check = time.time()
     n = trail_tokens_lobby(img)
-    if n is not None and n >= TRAIL_AT:
-        log(f"trail tokens {n} >= {TRAIL_AT}: spending them")
+    if n is not None and n >= min_tokens:
+        log(f"trail tokens {n} >= {min_tokens}: spending them")
         return use_trail()
+    return False
+
+
+def feed_pet_if_available(img):
+    """Open the lobby pet only when its badge says it is ready, and tap an explicit free FEED control."""
+    badge_text = " ".join(text.upper() for _, text, _ in read(img, PET_BADGE_BOX))
+    if not any(word in badge_text for word in ("FULL", "FEED")):
+        return False
+    log("pet: ready badge detected; checking for a free FEED action")
+    tap(PET_ICON, 1.5)
+    for _ in range(6):
+        page = shot()
+        found = ocr(page)[0] or []
+        texts = " ".join(text.upper() for _, text, _ in found)
+        if any(word in texts for word in ("GOOGLE PLAY", "PURCHASE", "BUY", "GEMS", "COINS")) \
+                or any(symbol in texts for symbol in ("₩", "$", "€", "£", "원")):
+            log("pet: paid feed option detected; leaving without buying")
+            break
+        feed = next(
+            (
+                (int(sum(point[0] for point in box) / 4), int(sum(point[1] for point in box) / 4))
+                for box, text, _ in found
+                if text.strip().upper().strip("!") in ("FEED", "FEED PET", "FEED NOW")
+            ),
+            None,
+        )
+        if feed:
+            log(f"pet: pressing free FEED at {feed}")
+            tap(feed, 1.5)
+            return True
+        if roll_visible(page):
+            break
+        time.sleep(0.5)
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    time.sleep(1.0)
     return False
 
 
@@ -1655,14 +1692,12 @@ def build_all():
             continue
         crowns = crowns_filled(img, x)
         need_total = estimate_total_to_complete(price, crowns)
-        target_price = need_total
-        afford_gate = price if discount else need_total  # 20% off: grab this step now, don't wait on the rest
+        afford_gate = price  # use every affordable upgrade step instead of saving for the whole card
+        target_price = afford_gate
         if afford_gate > c:
             global _hold_need, _hold_time
-            _hold_need, _hold_time = need_total, time.time()
-            log(f"build: front card {price} ({crowns}/5 crowns) - saving up "
-                + (f"for this step (20% off active, ~{afford_gate:,.0f})" if discount
-                   else f"to finish it in one go (~{afford_gate:,.0f} total)") + f", have {c}")
+            _hold_need, _hold_time = afford_gate, time.time()
+            log(f"build: front card {price} ({crowns}/5 crowns) - need {afford_gate:,.0f} for next step, have {c}")
             if time.time() - _kc_time > 600:  # how far is the next KINGDOM? (remaining steps and coins)
                 total, n_cards = scan_kingdom_cost()
                 prog = kingdom_progress(shot())
@@ -1986,7 +2021,7 @@ def claim_weekly():
     return claimed
 
 
-NO_AD_SWITCH_S = 60  # ads-only mode: no video found for this long -> fall into normal play instead of idling
+NO_AD_SWITCH_S = 180  # ads-only mode also falls back to normal play after 3 minutes without a video
 
 
 def run_ads_only(max_ads):
@@ -2065,12 +2100,14 @@ def play(max_rolls):
     pinball_n = 0
     last_roll_t = 0.0
     popup_after_roll = 0
-    no_energy_until = 0.0
     need = 0  # coins needed before trying to build again
-    refilling = False  # True while watching ads back-to-back after money+energy both ran out, until any energy is back
+    refilling = False
+    no_ad_since = None
+    no_ad_fallback = False
     e0 = energy(shot())
     if e0 is not None and e0 < 60:
         refilling = True
+        no_ad_since = time.time()
         log(f"starting with {e0} energy (<60): watching ads first")
     while rolls < max_rolls:
         img = shot()
@@ -2092,10 +2129,9 @@ def play(max_rolls):
             last_roll_t = 0.0
             popup_after_roll += 1
             if popup_after_roll >= 2:
-                no_energy_until = time.time() + 300
                 popup_after_roll = 0
                 _E["val"] = None
-                log("ROLL keeps opening an offer popup: treating the dice as used up for 5 minutes")
+                log("ROLL keeps opening an offer popup: refreshing the visible energy count")
         if roll_busy(img):  # dice on the board, ROLL dimmed: the animation, or the game waiting for the next tap
             busy_n += 1
             if busy_n < 4:
@@ -2110,8 +2146,6 @@ def play(max_rolls):
         busy_n = 0
         e = energy_est(img, last_was_roll)
         last_was_roll = False
-        if time.time() < no_energy_until and e is not None:
-            e = 0
         c = None
         if e is not None and not roll_visible(img):
             e = None  # an overlay covers ROLL: treat as popup
@@ -2369,6 +2403,11 @@ def play(max_rolls):
                 tap(UNKNOWN_TAPS[unknown % len(UNKNOWN_TAPS)], 1.0)
             continue
         unknown = 0
+        if refilling and no_ad_since is not None \
+                and time.time() - no_ad_since >= NO_AD_REFILL_TIMEOUT_S:
+            refilling = False
+            no_ad_fallback = True
+            log(f"no lobby ad for {NO_AD_REFILL_TIMEOUT_S}s: resuming available energy and coin upgrades")
         if refilling and e >= REFILL_TARGET:
             refilling = False
             log(f"energy back to {e} (target {REFILL_TARGET}): back to playing")
@@ -2376,6 +2415,7 @@ def play(max_rolls):
             e = 0   # keep retrying ads instead of spending partial energy before the refill target
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
+            no_ad_fallback = False
             if find_close_x(img) is not None:  # a popup sits on top of the board: never tap ROLL/xN
                 lock_buy_zone()
                 tap(find_close_x(img), 1.2)
@@ -2457,40 +2497,47 @@ def play(max_rolls):
             rolls += 1
             last_was_roll = True
             continue
-        # no energy: watch ads (one may grant the "20% OFF" hammer discount) until any energy is back.
-        # Building here only happens while that discount is active - otherwise just wait for ads/energy.
+        # No energy: spend any affordable coin upgrades, then alternate ads with normal play.
         if not refilling:
             global _ads_in_batch
             refilling = True
             _ads_in_batch = 0
+            if not no_ad_fallback:
+                no_ad_since = time.time()
             log("dice/money used up: watching ads until energy is back")
         global _kingdom_changed
         c = coins(img)
-        if hammer_discount_active(img):
-            # `need` is only a hint to avoid opening the panel every 15 s; it is dropped after a new
-            # kingdom (prices change) and every 8th idle loop, so a stale value can never block building
-            if idle % 8 == 0 or _kingdom_changed:
+        # Keep spending coins on affordable builds even when energy is empty and no discount is active.
+        if idle % 8 == 0 or _kingdom_changed:
+            need = 0
+            _kingdom_changed = False
+        if c is None or (c > 0 and c >= need):
+            n, min_price = build_all()
+            need = min_price or 0
+            if n:
                 need = 0
-                _kingdom_changed = False
-            if c is None or c >= need:
-                n, min_price = build_all()
-                need = min_price or 0
-                if n:
-                    need = 0
-                    continue
+                continue
         idle += 1
         cur_step = None
-        # no energy and nothing to build: the VIDEO bonus-ad icon pays more than the lobby bubble, so try it
-        # first; only once it's on cooldown (or absent) do we fall back to the regular lobby bubble
+        # No energy and no affordable build: try the VIDEO event first, then the lobby bubble.
         if time.time() - stall_since > 3600:
             stall_since = time.time()
         if time.time() - _last_ad > 20:
             if try_video_event(img):
+                no_ad_since = time.time()
                 idle = 0
                 continue
             if watch_ad():
+                no_ad_since = time.time()
                 idle = 0
                 continue
+        if no_ad_since is not None and time.time() - no_ad_since >= NO_AD_REFILL_TIMEOUT_S:
+            if feed_pet_if_available(img):
+                continue
+            if maybe_trail(img, min_tokens=1, force=True):
+                continue
+            log("no ads, energy, affordable builds, pet feed, or TRAIL left: stopping")
+            return
         if idle % 40 == 1:  # nothing to roll or build: collect free rewards (every ~10 min)
             claim_weekly()
             use_puzzle()
