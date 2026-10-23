@@ -1092,7 +1092,9 @@ def use_video_craze():
         started = False
         for hit in wt:
             log(f"video event: trying WATCH tier at {hit}")
-            tap(hit, 2.0)
+            tap(hit, 3.0)  # match watch_ad()'s grace period: some ad networks take a couple seconds to load
+            if not is_ad_focus(focus()):
+                time.sleep(1.5)  # one more look before giving up on a tile that may just be slow to open
             if is_ad_focus(focus()):
                 watched += 1
                 ride_ad()
