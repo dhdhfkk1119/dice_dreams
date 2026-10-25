@@ -42,7 +42,7 @@ def mask_of(img, lo=BAND[0], hi=BAND[1], thr=200):
     return (img[lo:hi].min(axis=2) > thr).astype(np.uint8) * 255
 
 
-def _best(band, glyph, thr):
+def _best(band, glyph, thr, y_offset=BAND[0]):
     best = None
     for s in SCALES:
         t = cv2.resize(glyph, None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_LINEAR)
@@ -51,12 +51,31 @@ def _best(band, glyph, thr):
         r = cv2.matchTemplate(band, t, cv2.TM_CCOEFF_NORMED)
         _, mx, _, loc = cv2.minMaxLoc(r)
         if mx >= thr and (best is None or mx > best[0]):
-            best = (mx, loc[0] + t.shape[1] // 2, loc[1] + t.shape[0] // 2 + BAND[0])
+            best = (mx, loc[0] + t.shape[1] // 2, loc[1] + t.shape[0] // 2 + y_offset)
     return best
 
 
 def find_known(img, thr=THR):
-    """Best library glyph in a corner of the top band -> (x, y, name) or None."""
+    """Best learned exit glyph in an ad corner -> (x, y, name) or None."""
+    h, w = img.shape[:2]
+    if w > h:
+        x_edge, y_edge = round(w * 0.22), round(h * 0.38)
+        regions = (
+            (0, 0, x_edge, y_edge),
+            (w - x_edge, 0, w, y_edge),
+            (w - x_edge, h - y_edge, w, h),
+        )
+        best = None
+        for name, glyph in _lib:
+            for x0, y0, x1, y1 in regions:
+                band = mask_of(img[y0:y1, x0:x1], 0, y1 - y0)
+                match = _best(band, glyph, thr, y_offset=y0)
+                if match:
+                    candidate = (match[0], match[1] + x0, match[2], name)
+                    if best is None or candidate[0] > best[0]:
+                        best = candidate
+        return None if best is None else best[1:]
+
     band = mask_of(img)
     best = None
     for name, g in _lib:

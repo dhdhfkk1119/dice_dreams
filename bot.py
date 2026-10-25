@@ -2,7 +2,7 @@
 
 Rule: coins >= cheapest building -> build; otherwise ROLL. Stops when energy is 0,
 after MAX_ROLLS, or when an unknown screen persists (screenshot saved for review).
-Usage: python bot.py [max_rolls]   (no argument = no limit)
+Usage: python bot.py [max_rolls] | ads [max_ads] | sale [max_rolls]
 """
 import os, re, subprocess, sys, time
 
@@ -94,13 +94,12 @@ def shot(name=None):
 
 
 def landscape(img):
-    """True while the screen is rotated (some ads do this): every fixed pixel coordinate in this file assumes
-    portrait, so callers must skip tapping anything computed from a landscape frame and just wait it out."""
+    """True while the screen is rotated; portrait-only coordinates must not be used in that orientation."""
     return img.shape[0] < img.shape[1]
 
 
 POST_SHARE = True   # always share a restored kingdom to the story (+10 rolls), as the user asked
-BUILD_AT = 500_000  # with energy left, upgrade the kingdom once this many coins are saved (front card first)
+BUILD_AT = 500_000  # with energy left, check for affordable kingdom upgrades after this many coins are saved
 _kingdom_changed = False
 BUY_ZONE = (250, 1650, 830, 2250)  # where the green price button / ROLL sit (x0, y0, x1, y1)
 BUY_LOCK_S = 6.0                   # seconds the zone stays locked after a payment screen was seen
@@ -537,9 +536,10 @@ def log(*a):
 CROWN_Y = 2053                       # crown row of every building card
 CROWN_DX = (-127, -65, -1, 61)       # the 4 crowns, relative to the card centre (5th slot = gift)
 PRICE_TO_CENTER = -29                # card centre x = price-text x + this
+CARD_STEP_PX = 500                   # shorter swipes preserve more overlap between scanned cards
 
 
-def scroll_cards(direction, px=650):
+def scroll_cards(direction, px=CARD_STEP_PX):
     """Swipe the card strip: direction +1 shows cards further right, -1 goes back left."""
     a, b = (950, 950 - px) if direction > 0 else (150, 150 + px)
     adb("shell", "input", "swipe", str(a), "2050", str(b), "2050", "450")  # a slower swipe throws the strip less
@@ -588,9 +588,9 @@ def scroll_to_start():
     Returns the frame of the start page."""
     prev = strip_sig(shot())
     img = None
-    for _ in range(6):
-        scroll_cards(-1, 800)
-        img = shot()
+    for _ in range(14):
+        scroll_cards(-1, CARD_STEP_PX)
+        img = settle()
         cur = strip_sig(img)
         if strip_same(prev, cur):
             return img
@@ -614,20 +614,21 @@ def crowns_filled(img, price_x):
 
 
 def scan_cards():
-    """Walk the whole strip once; returns a list of dicts (price, crowns, page) for every card."""
+    """Read three visible cards at a time, advancing in shorter steps to preserve overlap."""
     img = scroll_to_start()
     seen = {}
-    for page in range(8):
+    for page in range(12):
         ps = prices(img)
+        active = green_price_buttons(img)
+        log(f"build scan: page {page + 1}, {len(ps)} price labels / {len(active)} active cards; "
+            f"{max(0, 3 - len(active))} visible cards have no upgrade button")
         for price, x in ps:
             seen.setdefault(price, {"price": price, "crowns": crowns_filled(img, x), "page": page})
         before = strip_sig(img)
-        scroll_cards(+1, 900)  # one page = the three visible cards
-        img = shot()
+        scroll_cards(+1, CARD_STEP_PX)
+        img = settle()
         if strip_same(before, strip_sig(img)):
-            img = shot()  # still gliding? look once more before calling it the end
-            if strip_same(before, strip_sig(img)):
-                break  # the swipe changed nothing: that was the end of the strip
+            break  # settled strip did not move: that was the end
     return list(seen.values())
 
 
@@ -891,6 +892,7 @@ TRAIL_MULT_BOX = (730, 1840, 900, 1960)
 TRAIL_CYCLE = [1, 5, 10, 15, 20, 30, 50, 100, 200, 400, 600, 800, 1200, 2000]   # measured: one tap = next entry
 TRAIL_AT = 200        # start spending when this many tokens have piled up ...
 TRAIL_BEST = 50       # spend at x50 when possible, then use the largest multiplier that fits the remainder
+TRAIL_STUCK_S = 120   # stop and leave if trail tokens do not change for two minutes
 _trail_check = 0.0
 PET_ICON = (115, 1650)
 PET_BADGE_BOX = (20, 1490, 245, 1810)
@@ -979,7 +981,11 @@ def use_trail():
         log("trail: the page did not open")
         return False
     spins, bad, last, mult_fail, t_start = 0, 0, None, 0, time.time()
+    last_progress = t_start
     for _ in range(60):
+        if time.time() - last_progress >= TRAIL_STUCK_S:
+            log(f"trail: no progress for {TRAIL_STUCK_S}s; leaving the event")
+            break
         img = shot()
         if not trail_screen(img):
             # a chest / card / reward popup is on top: take it (X, a named button, or a tap anywhere)
@@ -1024,6 +1030,7 @@ def use_trail():
                 n2 = trail_tokens_screen(im2)
                 if n2 is not None and n2 != tokens:
                     changed = True
+                    last_progress = time.time()
                     break
             else:
                 xy = find_close_x(im2)
@@ -1062,7 +1069,7 @@ def maybe_trail(img, min_tokens=TRAIL_AT, force=False):
 
 def feed_pet_if_available(img):
     """Open the lobby pet only when its badge says it is ready, and tap an explicit free FEED control."""
-    badge_text = " ".join(text.upper() for _, text, _ in read(img, PET_BADGE_BOX))
+    badge_text = " ".join(text.upper() for _, text in read(img, PET_BADGE_BOX))
     if not any(word in badge_text for word in ("FULL", "FEED")):
         return False
     log("pet: ready badge detected; checking for a free FEED action")
@@ -1178,7 +1185,7 @@ def use_video_craze():
         xy = find_close_x(img)
         if xy:
             tap(xy, 1.2)
-    return watched > 0
+    return watched
 
 
 def tap_to_collect(found, texts=""):
@@ -1226,10 +1233,26 @@ def find_ad_x_glyph(img):
 
 
 def find_skip_text(img):
-    """A "Skip" / "Skip Ad" / "건너뛰기" / "Google Play" button read as text in the top band of an ad (Meta /
-    Audience Network videos draw it as a pill with the word) -> centre or None. Tapping "Google Play" leaves
-    to the Play Store, which leave_other_app() force-stops and returns from (nothing is ever installed) -
-    closing a 1-minute ad in 30s this way is worth it even mid-playback, as the user asked for."""
+    """Find a recognized ad skip/close label, checking all four corners in landscape."""
+    h, w = img.shape[:2]
+    if w > h:
+        x_edge, y_edge = round(w * 0.38), round(h * 0.45)
+        regions = (
+            (0, 0, x_edge, y_edge),
+            (w - x_edge, 0, w, y_edge),
+            (0, h - y_edge, x_edge, h),
+            (w - x_edge, h - y_edge, w, h),
+        )
+        for x0, y0, x1, y1 in regions:
+            for box, text, _ in ocr(img[y0:y1, x0:x1])[0] or []:
+                label = text.strip().upper()
+                if "SKIP" in label or label in ("건너뛰기", "광고 건너뛰기", "CLOSE", "닫기"):
+                    return (
+                        x0 + int(sum(point[0] for point in box) / 4),
+                        y0 + int(sum(point[1] for point in box) / 4),
+                    )
+        return None
+
     for b, t, _ in ocr(img[60:330, 0:1080])[0] or []:
         tt = t.strip().upper()
         if tt.startswith("SKIP") or tt in ("건너뛰기", "광고 건너뛰기", "CLOSE", "닫기") or "GOOGLE PLAY" in tt:
@@ -1247,13 +1270,43 @@ def find_ad_close(img):
 def find_ad_close_box(img):
     """The ad's close X: a white X on a dark rounded square in the top-right or top-left corner.
     Never the 'download' / 'Google Play' buttons (those open the store)."""
-    for cx in (1005, 986, 75, 94):
-        for cy in (107, 192):  # end cards put the X a bit lower (y~192) and further in (x~986)
-            box = img[cy - 50:cy + 50, cx - 50:cx + 50]
-            white = float((box.min(axis=2) > 235).mean())
-            dark = float((box.mean(axis=2) < 120).mean())
-            if white > 0.012 and dark > 0.6:
-                return cx, cy
+    h, w = img.shape[:2]
+    if not landscape(img):
+        for cx in (1005, 986, 75, 94):
+            for cy in (107, 192):  # end cards put the X a bit lower (y~192) and further in (x~986)
+                box = img[cy - 50:cy + 50, cx - 50:cx + 50]
+                white = float((box.min(axis=2) > 235).mean())
+                dark = float((box.mean(axis=2) < 120).mean())
+                if white > 0.012 and dark > 0.6:
+                    return cx, cy
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if landscape(img):
+        centers = (round(w * 0.93), round(w * 0.96), round(w * 0.045), round(w * 0.07), round(w * 0.10))
+        y_positions = (round(h * 0.07), round(h * 0.10), round(h * 0.13), round(h * 0.16))
+    else:
+        centers = (round(w * 0.07), round(w * 0.10), round(w * 0.915), round(w * 0.93))
+        y_positions = (round(h * 0.046), round(h * 0.058), round(h * 0.071), round(h * 0.10))
+    for cx in centers:
+        for cy in y_positions:
+            for dx in (-10, 0, 10):
+                for dy in (-10, 0, 10):
+                    x, y = cx + dx, cy + dy
+                    if x < 40 or x + 40 >= w or y < 40 or y + 40 >= h:
+                        continue
+                    patch = gray[y - 40:y + 41, x - 40:x + 41]
+                    yy, xx = np.ogrid[-40:41, -40:41]
+                    radius_sq = xx * xx + yy * yy
+                    ring = patch[(radius_sq >= 27 * 27) & (radius_sq <= 38 * 38)]
+                    if float((ring > 170).mean()) < 0.75:
+                        continue
+                    offsets = np.arange(-15, 16)
+                    offsets = offsets[np.abs(offsets) >= 2]
+                    slack = np.arange(-5, 6)
+                    diag1 = patch[40 + offsets[:, None], 40 + offsets[:, None] + slack].min(axis=1)
+                    diag2 = patch[40 + offsets[:, None], 40 - offsets[:, None] + slack].min(axis=1)
+                    if float((diag1 < 160).mean()) > 0.4 and float((diag2 < 160).mean()) > 0.4:
+                        return x, y
     return None
 
 
@@ -1385,16 +1438,25 @@ def _ride_ad(max_s=150):
             continue
         img = shot()
         if landscape(img):
-            # a rotated ad: every *fixed* portrait coordinate below would tap the wrong spot, so only act on
-            # a glyph actually recognised in this frame (X / skip />>  / known exit) - never guess a corner.
+            # Rotated ads move the X; recognize its shape in a screen-relative corner before trying other exits.
+            close = find_ad_close_box(img)
             dx = adlearn.find_dialog_x(img)
             hit = adlearn.find_known(img)
-            xy = dx or ((hit[0], hit[1]) if hit else None)
-            if xy and not adlearn.is_bad(img, xy[0], xy[1]):
-                log(f"ad: closing the ad at {xy}" + (f" ({hit[2]})" if hit and xy == (hit[0], hit[1]) else "") + " [landscape]")
+            sk = find_skip_text(img)
+            xy = close or dx or ((hit[0], hit[1]) if hit else None) or sk
+            if xy and (close is not None or not adlearn.is_bad(img, xy[0], xy[1])):
+                source = " (X)" if close and xy == close else ""
+                source += " (SKIP)" if sk and xy == sk else ""
+                source += f" ({hit[2]})" if hit and xy == (hit[0], hit[1]) else ""
+                log(f"ad: closing the ad at {xy}{source} [landscape]")
                 tap(xy, 2.5)
             else:
                 time.sleep(1)
+            continue
+        close = find_ad_close_box(img)
+        if close is not None:
+            log(f"ad: closing the ad at {close} (detected X)")
+            tap(close, 2.5)
             continue
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
@@ -1482,7 +1544,8 @@ def panel_open(img):
     """The build panel is up when its 'KINGDOM n' tab or the FREE / COMPLETE NOW bubble is visible above the cards
     (the bubble can hide the tab, or only its first letters)."""
     txt = " ".join(t for _, t in read(img, COMPLETE_BOX)).upper()
-    return ("KINGDOM" in txt or re.search(r"DOM\s*\d", txt) is not None or "COMPLETE" in txt or "OMPLETE" in txt)
+    kingdom = re.search(r"K[I1]NGD[O0]{1,2}M|\bDOM\s*\d", txt)
+    return (kingdom is not None or "KINGDOM" in txt or "COMPLETE" in txt or "OMPLETE" in txt)
 
 
 def open_panel():
@@ -1507,41 +1570,51 @@ def open_panel():
 
 
 def close_panel():
+    for attempt in range(3):
+        img = shot()
+        if not panel_open(img):
+            return True
+        if attempt == 0:
+            log("build: closing the upgrade panel")
+        tap(SCENE if attempt % 2 == 0 else HAMMER, 1.2)
     if panel_open(shot()):
-        tap(SCENE, 1.5)
-        if panel_open(shot()):
-            tap(HAMMER, 1.5)  # the tap on the scene did not close it: toggle with the hammer
+        log("build: upgrade panel is still open after close attempts")
+        return False
+    return True
 
 
-def front_card(first=True, img=None):
-    """First card, from the left, that still has a price button. Finished buildings stay in the strip as
-    green check marks (no price), so swipe right past them. Returns (screenshot, (price, x)) or None.
-    `first`: go to the start of the strip first; later calls just look at `img` (the frame taken right after the
-    last purchase) - the strip stays put, so no swipe and no extra screenshot are needed.
-    The end of the strip is detected by a swipe that changes nothing (no blind repeated swiping)."""
+def affordable_card(first=True, img=None):
+    """Find an upgrade button affordable with the current coins, continuing right past expensive cards.
+    Returns ((screenshot, (price, x)) or None, cheapest unaffordable price found)."""
     if first:
         time.sleep(0.3)  # the panel is still sliding up; swipes during that animation do nothing
         img = scroll_to_start()
     elif img is None:
         img = settle()
-    for _ in range(14):
+    min_unaffordable = None
+    for page in range(14):
         ps = prices(img)
-        if ps and ps[0][1] < 90:      # the leftmost button is cut off at the edge: a card hides further left
-            scroll_cards(-1, 250)
-            img = settle()
-            continue
-        if ps:
-            return img, ps[0]
+        active = green_price_buttons(img)
+        log(f"build scan: page {page + 1}, {len(ps)} price labels / {len(active)} active cards; "
+            f"{max(0, 3 - len(active))} visible cards have no upgrade button")
+        current_coins = coins(img)
+        if current_coins is not None:
+            affordable = [item for item in ps if item[0] <= current_coins]
+            if affordable:
+                return (img, min(affordable, key=lambda item: item[0])), min_unaffordable
+            for price, _ in ps:
+                if min_unaffordable is None or price < min_unaffordable:
+                    min_unaffordable = price
         if find_close_x(img) is not None:
-            return None               # a reward popup sits over the strip: let the caller close it (never swipe on it)
+            return None, min_unaffordable  # let the caller close it; never swipe on a popup
         before = strip_sig(img)
-        scroll_cards(+1, 900)         # no price on this page: all finished -> next page
-        img = shot()
+        scroll_cards(+1, CARD_STEP_PX)
+        img = settle()
         if strip_same(before, strip_sig(img)):
             img = shot()
             if strip_same(before, strip_sig(img)):
-                return None           # the swipe changed nothing: the end of the strip
-    return None
+                return None, min_unaffordable
+    return None, min_unaffordable
 
 
 COMPLETE_BOX = (0, 1400, 1080, 1700)    # build panel: the "KINGDOM n" tab (y~1419-1452) or the green "FREE
@@ -1583,9 +1656,8 @@ PROGRESS_BOX = (250, 1630, 850, 1730)    # build panel: "21/45" = steps done / s
 _kingdom_cost = 0.0      # estimated coins still needed to finish the whole kingdom (0 = unknown)
 _kc_time = 0.0
 _last_front_price = 0
-_hold_need = 0.0     # coins the front card needs to be finished in one go ('saving up'); 0 = not holding
-_hold_time = 0.0
-HOLD_RECHECK_S = 240   # while holding, look at the panel again only this often (a free COMPLETE NOW video may be up)
+_build_scan_incomplete = False
+_hold_need = 0.0     # cheapest known next upgrade price; 0 = no affordability threshold is cached
 
 
 def kingdom_progress(img):
@@ -1615,19 +1687,20 @@ def green_price_buttons(img):
     return sorted(int(cent[i][0]) for i in range(1, n) if st[i, 2] > 150 and 60 < st[i, 3] < 160)
 
 
-def build_all():
-    """Build in the strip's own order: always the FRONT (leftmost) card, until it is complete (a finished
-    building leaves the strip, so the next one becomes the front). If the front card is too expensive we
-    wait for more coins; we never buy a card further back just because coins are spare.
-    Returns (bought, price of the front card we are saving up for or None)."""
+def build_all(allow_free_video=True):
+    """Upgrade any building with an affordable next step, scanning right past cards that cost too much.
+    Returns (bought, cheapest known upgrade price to wait for, or None)."""
     discount = hammer_discount_active(shot())  # the "20% OFF" ribbon only shows in the lobby, before the panel opens
     if not open_panel():
         log("build: could not open the build panel")
         return 0, None
     if discount:
         log("build: 20% OFF is active - grabbing single steps instead of saving up for a whole card")
-    global _last_front_price
+    global _last_front_price, _build_scan_incomplete
+    _build_scan_incomplete = False
     bought, target_price, stalls, recog_retry, next_img = 0, None, 0, 0, None
+    global _hold_need
+    _hold_need = 0
     if time.time() - _kc_time > 600:  # how much does the whole kingdom still cost? (decides "money is plentiful")
         total, n_cards = scan_kingdom_cost()
         prog = kingdom_progress(shot())
@@ -1635,7 +1708,7 @@ def build_all():
             + (f" (steps {prog[0]}/{prog[1]})" if prog else ""))
         scroll_to_start()
     for i in range(60):
-        found = front_card(first=(i == 0), img=next_img)
+        found, blocked_price = affordable_card(first=(i == 0 or recog_retry > 0), img=next_img)
         next_img = None
         if found is None:
             img0 = shot()
@@ -1645,22 +1718,32 @@ def build_all():
                 tap(xy, 1.0)
                 recog_retry = 0
                 continue
+            if blocked_price is not None:
+                _hold_need = blocked_price
+                target_price = blocked_price
+                log(f"build: no affordable upgrade found; cheapest next step is {blocked_price:,.0f}")
+                break
             prog = kingdom_progress(img0)
             if prog and prog[0] < prog[1] and recog_retry < 2:
-                # the bar says steps are still missing but no price was read: look again before giving up
+                # Steps remain, so restart at the first card instead of searching repeatedly from the end.
                 recog_retry += 1
-                log(f"build: nothing recognised but progress is {prog[0]}/{prog[1]} - looking again")
+                log(f"build: nothing recognised but progress is {prog[0]}/{prog[1]} - restarting from first card")
                 time.sleep(1.0)
                 continue
             if prog and prog[0] < prog[1] and _last_front_price:
-                gp = green_price_buttons(shot())
-                c0 = coins(shot())
+                first_page = scroll_to_start()
+                gp = green_price_buttons(first_page)
+                c0 = coins(first_page)
                 if gp and c0 is not None and c0 >= 3 * _last_front_price:
                     log(f"build: price text unreadable, coins {c0} are plenty: pressing the left-most green button x={gp[0]}")
                     tap((gp[0], BUTTON_Y), 1.6)
                     bought += 1
                     continue
-            log("build: no unfinished building in the strip (all done?)")
+            if prog and prog[0] < prog[1]:
+                _build_scan_incomplete = True
+                log(f"build: scan incomplete at {prog[0]}/{prog[1]}; will restart from the first card")
+            else:
+                log("build: no unfinished building in the strip (all done?)")
             break
         recog_retry = 0
         img, (price, x) = found
@@ -1669,7 +1752,8 @@ def build_all():
         need_now = estimate_total_to_complete(price, crowns_filled(img, x))
         # a free video completes the front building at once - worth it only when the coins cannot do it right now
         # (buying is far quicker than a 2-minute video); the OCR for the bubble is skipped when coins suffice
-        cn = None if (c_now is not None and c_now >= need_now) else complete_now_button(img)
+        cn = (None if not allow_free_video or (c_now is not None and c_now >= need_now)
+              else complete_now_button(img))
         if cn and c_now is not None and _kingdom_cost and c_now >= _kingdom_cost:
             cn = None  # plenty of coins for the whole kingdom: buying is quicker than watching a video
         now_t = time.time()
@@ -1695,16 +1779,15 @@ def build_all():
         afford_gate = price  # use every affordable upgrade step instead of saving for the whole card
         target_price = afford_gate
         if afford_gate > c:
-            global _hold_need, _hold_time
-            _hold_need, _hold_time = afford_gate, time.time()
-            log(f"build: front card {price} ({crowns}/5 crowns) - need {afford_gate:,.0f} for next step, have {c}")
+            _hold_need = afford_gate
+            log(f"build: next step {price} ({crowns}/5 crowns) - need {afford_gate:,.0f}, have {c}")
             if time.time() - _kc_time > 600:  # how far is the next KINGDOM? (remaining steps and coins)
                 total, n_cards = scan_kingdom_cost()
                 prog = kingdom_progress(shot())
                 log(f"kingdom: {n_cards} cards unfinished, ~{total:,.0f} coins to finish all (have {c}"
                     + (f", steps {prog[0]}/{prog[1]}" if prog else "") + ")")
             break
-        log(f"build front card {price} ({crowns}/5 crowns, coins {c})")
+        log(f"build affordable card {price} ({crowns}/5 crowns, coins {c})")
         tap((x, BUTTON_Y), 0.9)
         bought += 1
         next_img = shot()          # this one frame serves both the coin check and the next card's price read
@@ -1900,7 +1983,7 @@ def share_story_only():
 def kingdom_restored_fast(img):
     """True when this was the KINGDOM RESTORED screen and we acted (share once if the bonus bubble is there,
     otherwise straight to NEXT KINGDOM)."""
-    global _share_tries, _kingdom_changed, _kingdom_cost
+    global _share_tries, _kingdom_changed, _kingdom_cost, _hold_need
     bonus = kingdom_restored_look(img)
     if bonus is None:
         return False
@@ -1918,13 +2001,14 @@ def kingdom_restored_fast(img):
     tap(NEXT_BTN, 2.0)
     _kingdom_changed = True
     _kingdom_cost = 0.0
+    _hold_need = 0.0
     _share_tries = 0
     return True
 
 
 def kingdom_done(found):
     """KINGDOM RESTORED: SHARE first (it gives +10 rolls), back out of the share sheet, then NEXT KINGDOM."""
-    global _share_tries, _kingdom_cost
+    global _share_tries, _kingdom_cost, _hold_need
     share = find_text(found, "SHARE")
     # the "+10 (dice)" bubble under SHARE is there only until the share was posted: no bubble -> straight to NEXT KINGDOM
     bonus = any(re.match(r"\+\s*\d+", r[1].strip()) for r in found)
@@ -1957,6 +2041,7 @@ def kingdom_done(found):
         global _kingdom_changed
         _kingdom_changed = True  # new kingdom -> new prices: forget the old cheapest price
         _kingdom_cost = 0.0
+        _hold_need = 0.0
         _share_tries = 0
 
 
@@ -2024,21 +2109,131 @@ def claim_weekly():
 NO_AD_SWITCH_S = 180  # ads-only mode also falls back to normal play after 3 minutes without a video
 
 
-def run_ads_only(max_ads):
+def sale_handle_overlay(img):
+    """Dismiss blockers between sale-mode videos without selecting offers or paid controls."""
+    if landscape(img):
+        ride_ad()
+        return True
+    ba = find_back_arrow(img)
+    if ba:
+        log(f"sale: leaving event page at {ba}")
+        tap(ba, 2.0)
+        return True
+    f = focus()
+    if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):
+        if GAME_PKG not in f and not is_ad_any(f):
+            log(f"sale: leaving other app ({f[-50:]})")
+            leave_other_app(f)
+        else:
+            xy = find_skip_text(img) or find_ad_close(img)
+            if xy and adlearn.is_bad(img, xy[0], xy[1]):
+                xy = None
+            if xy:
+                log(f"sale: closing ad at {xy}")
+                tap(xy, 2.5)
+            else:
+                ride_ad()
+        return True
+    if find_close_x(img) is not None:
+        log("sale: closing popup without selecting its contents")
+        tap(find_close_x(img), 1.2)
+        return True
+    if fb_sheet(img):
+        share_story_only()
+        return True
+    return False
+
+
+def sale_collect_lobby_ads():
+    """Collect lobby video energy until no lobby ad can be opened for the normal cooldown window."""
+    no_ad_since = time.time()
+    last_notice = 0.0
+    ads = 0
+    log("sale: phase 1 - collecting lobby video energy until ads dry up")
+    while True:
+        img = shot()
+        if sale_handle_overlay(img):
+            continue
+        if time.time() - _last_ad > 20:
+            if try_video_event(img) or watch_ad(img):
+                ads += 1
+                no_ad_since = time.time()
+                log(f"sale: lobby video {ads} watched")
+                continue
+        now = time.time()
+        if now - no_ad_since >= NO_AD_SWITCH_S:
+            log(f"sale: no lobby video for {NO_AD_SWITCH_S}s; moving to energy-only play")
+            return ads
+        if now - last_notice >= 60:
+            log("sale: waiting for another lobby video")
+            last_notice = now
+        time.sleep(2)
+
+
+def sale_wait_for_hammer():
+    """Watch only the lobby VIDEO bonus until its 20% building discount is visible."""
+    last_notice = 0.0
+    log("sale: waiting for the golden-hammer VIDEO discount")
+    while True:
+        img = shot()
+        if hammer_discount_active(img):
+            log("sale: golden-hammer discount is active")
+            return True
+        if sale_handle_overlay(img):
+            continue
+        if roll_visible(img) and time.time() - _last_ad > 20 and try_video_event(img):
+            continue
+        now = time.time()
+        if now - last_notice >= 60:
+            log("sale: waiting for the golden-hammer VIDEO to become available")
+            last_notice = now
+        time.sleep(2)
+
+
+def run_sale(max_rolls):
+    """Drain stored energy, watch the golden-hammer video, spend available coins on upgrades, then stop."""
+    log(f"sale: phase 1 - spending stored energy before the hammer video (limit {max_rolls} rolls)")
+    result = play(max_rolls, sale_drain=True)
+    if result != "energy_depleted":
+        log(f"sale: stopped before energy was empty ({result}); not starting hammer/build phases")
+        return
+    log("sale: phase 2 - energy depleted; now waiting for the golden-hammer VIDEO")
+    if not hammer_discount_active(shot()):
+        sale_wait_for_hammer()
+    if hammer_discount_active(shot()):
+        log("sale: phase 3 - spending available coins on upgrades only; no COMPLETE NOW videos")
+        bought, target = build_all(allow_free_video=False)
+        log(f"sale: discounted build phase bought {bought} upgrades"
+            + (f"; next known price {target:,.0f}" if target is not None else ""))
+    log("sale: finished hammer upgrades; stopping without normal rolls")
+
+
+def run_ads_only(max_ads, until_hammer=False):
     """CLI `python bot.py ads N`: ignore rolling/building/minigames entirely (none of those can even trigger
     without a ROLL tap) and just watch up to N free videos in a row, handling only what can actually stand
-    between one video and the next: a stray event page, an ad/app already in front, a popup, or a leftover
-    share sheet from a kingdom that just finished.
-
-    If no video is found for NO_AD_SWITCH_S, this falls into play() - normal rolling/building - instead of
-    idling: energy that piled up unused gets spent, and since play() watches ads itself whenever it runs dry
-    (the same functions used here), that side of the cycle (ads <-> normal play) keeps going on its own from
-    there; this function's own loop does not regain control once that happens."""
+    between one video and the next: Endless Rewards, a stray event page, an ad/app already in front, a popup,
+    or a leftover share sheet from a kingdom that just finished. With `until_hammer`, it keeps watching these
+    free videos until the lobby's golden-hammer discount appears. It never switches to rolling or building."""
     watched = 0
-    no_ad_since = time.time()
-    log(f"ads-only mode: watching up to {max_ads} free videos")
+    last_notice = time.time()
+    target = " until the golden hammer appears" if until_hammer else ""
+    log(f"ads-only mode: watching up to {max_ads} free videos{target}")
     while watched < max_ads:
         img = shot()
+        if until_hammer and roll_visible(img) and hammer_discount_active(img):
+            log("ads-only mode: golden-hammer discount is active")
+            return
+        f = focus()
+        if f and (is_ad_focus(f) or is_ad_any(f)):
+            ride_ad()
+            continue
+        if video_craze_screen(img):
+            tier_ads = use_video_craze()
+            watched += tier_ads
+            if tier_ads:
+                last_notice = time.time()
+                log(f"ads mode: watched {tier_ads} Endless Rewards video tier(s), {watched}/{max_ads} total")
+            continue
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
             ride_ad()
             continue
@@ -2047,21 +2242,13 @@ def run_ads_only(max_ads):
             log(f"back arrow at {ba}: leaving this page")
             tap(ba, 2.0)
             continue
-        f = focus()
-        if f and (is_ad_focus(f) or is_ad_any(f) or GAME_PKG not in f):  # an ad (or another app) is already in front
+        if f and GAME_PKG not in f:  # another app is in front
             if GAME_PKG not in f and not is_ad_any(f):
                 log(f"another app has focus ({f[-50:]}): leaving it")
                 leave_other_app(f)
-            else:
-                xy = find_skip_text(img) or find_ad_close(img)
-                if xy and adlearn.is_bad(img, xy[0], xy[1]):
-                    xy = None
-                if xy:
-                    log(f"ad on screen: closing at {xy}")
-                    tap(xy, 2.5)
-                else:
-                    log("ad on screen without X: waiting / poking")
-                    ride_ad()
+            continue
+        if paid_offer_screen(img):
+            use_paid_offer()
             continue
         if find_close_x(img) is not None:  # a popup sits on top of the board
             tap(find_close_x(img), 1.2)
@@ -2069,24 +2256,22 @@ def run_ads_only(max_ads):
         if fb_sheet(img):  # a kingdom-restored share sheet left open
             share_story_only()
             continue
-        if time.time() - _last_ad > 20:
+        if roll_visible(img) and time.time() - _last_ad > 20:
             if try_video_event(img) or watch_ad(img):
                 watched += 1
-                no_ad_since = time.time()
+                last_notice = time.time()
                 log(f"ads mode: {watched}/{max_ads} watched")
                 continue
-        if time.time() - no_ad_since > NO_AD_SWITCH_S:
-            log(f"ads-only mode: no video for {NO_AD_SWITCH_S}s, switching to normal play (builds/rolls, and "
-                f"watches ads itself once energy runs out - so the ads<->play cycle keeps going from here)")
-            play(100000)
-            return
+        if time.time() - last_notice >= 60:
+            log("ads-only mode: no free video available; staying in ad-only mode without rolling or building")
+            last_notice = time.time()
         time.sleep(2)
     log(f"ads-only mode: done, watched {watched} ads")
 
 
-def play(max_rolls):
+def play(max_rolls, sale_drain=False):
     """Normal play: build/roll/trail while there's energy or money, watch ads once both run out, repeat.
-    Shared by `python bot.py N` and by run_ads_only(), which falls into this once ads dry up for a while."""
+    `sale_drain` spends stored energy without building, TRAIL, or starting more ads, then returns when empty."""
     touch_ok()
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
@@ -2105,7 +2290,7 @@ def play(max_rolls):
     no_ad_since = None
     no_ad_fallback = False
     e0 = energy(shot())
-    if e0 is not None and e0 < 60:
+    if not sale_drain and e0 is not None and e0 < 60:
         refilling = True
         no_ad_since = time.time()
         log(f"starting with {e0} energy (<60): watching ads first")
@@ -2188,7 +2373,7 @@ def play(max_rolls):
                 continue
             if kingdom_restored_fast(img):
                 continue
-            if video_craze_screen(img):  # its own event: watch every unlocked tier, not just one popup watch
+            if not sale_drain and video_craze_screen(img):  # only start event videos outside the energy-drain phase
                 use_video_craze()
                 continue
             if paid_offer_screen(img):  # a real-money funnel: claim whatever is actually free, then leave
@@ -2420,18 +2605,16 @@ def play(max_rolls):
                 lock_buy_zone()
                 tap(find_close_x(img), 1.2)
                 continue
-            # ads are watched only once energy and money are both spent (see the e < 1 branch below);
-            # while there's still dice or coins to use, just keep rolling/building.
-            # priority 1: TRAIL tokens >= 200 -> spend them at x50 first.
-            if not free_mode and maybe_trail(img):
+            if sale_drain and not free_mode and feed_pet_if_available(img):
                 cur_step = None
                 continue
-            # priority 2: money -> kingdom upgrades. The hammer's red badge counts upgrades affordable right
-            # now and updates live, so check it every loop (no throttle) instead of waiting on a timer.
-            if not free_mode:
+            # ads are watched only once energy and money are both spent (see the e < 1 branch below);
+            # while there's still dice or coins to use, just keep rolling/building.
+            # Priority: check affordable kingdom upgrades before optional TRAIL spins.
+            if not sale_drain and not free_mode:
                 hb = hammer_badge(img)
                 holding = False
-                if _hold_need and time.time() - _hold_time < HOLD_RECHECK_S:
+                if _hold_need:
                     cnow = coins(img)
                     if cnow is not None:
                         _last_coins = cnow
@@ -2457,13 +2640,17 @@ def play(max_rolls):
                         # the next KINGDOM within reach (coins cover everything still unbuilt): upgrades come
                         # first, whatever the 500k rule says
                         finish = bool(_kingdom_cost) and cc is not None and cc >= _kingdom_cost
-                        if cc is not None and (cc >= BUILD_AT or finish):
+                        build_threshold = max(BUILD_AT, _hold_need)
+                        if cc is not None and (cc >= build_threshold or finish):
                             log(f"coins {cc} cover the whole kingdom (~{_kingdom_cost:,.0f}): upgrades first" if finish
                                 else f"coins {cc} >= {BUILD_AT}: upgrading the kingdom")
                             n, _ = build_all()
                             if n:
                                 cur_step = None
                                 continue
+            if not free_mode and not _build_scan_incomplete and maybe_trail(img):
+                cur_step = None
+                continue
             if not free_mode:
                 # the "MAX xN" bubble names the best multiplier on offer right now: match it when it's shown.
                 # When it isn't shown at all, leave the multiplier alone and just roll.
@@ -2498,6 +2685,18 @@ def play(max_rolls):
             last_was_roll = True
             continue
         # No energy: spend any affordable coin upgrades, then alternate ads with normal play.
+        if sale_drain:
+            if not free_mode:
+                fed = feed_pet_if_available(img)
+                trailed = maybe_trail(img, min_tokens=1, force=True)
+                if fed or trailed:
+                    refreshed = shot()
+                    refreshed_energy = energy(refreshed)
+                    if refreshed_energy is not None and refreshed_energy > 0:
+                        log(f"sale: free side activity restored energy to {refreshed_energy}; continuing")
+                        continue
+            log(f"sale: stored energy depleted after {rolls} rolls")
+            return "energy_depleted"
         if not refilling:
             global _ads_in_batch
             refilling = True
@@ -2545,14 +2744,21 @@ def play(max_rolls):
         log(f"energy low, waiting (coins={c}, next build needs {need})")
         time.sleep(15)  # poll often: energy can jump (rewards) and popups may appear
     log("done", rolls, "rolls")
+    return "roll_limit" if sale_drain else None
 
 
 def main():
     require_phone()
-    # `python bot.py N` plays normally for up to N rolls; `python bot.py ads N` ignores rolling/building and
-    # just watches up to N free videos back-to-back (run_ads_only falls into play() itself if ads dry up).
+    # `python bot.py N` plays normally; `ads N` watches ads only; `sale N` runs the golden-hammer sale cycle.
     if len(sys.argv) > 1 and sys.argv[1].lower() == "ads":
-        run_ads_only(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
+        ads_arg = sys.argv[2] if len(sys.argv) > 2 else ""
+        if ads_arg.lower() == "hammer":
+            run_ads_only(10000, until_hammer=True)
+        else:
+            run_ads_only(int(ads_arg) if ads_arg else 10000)
+        return
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "sale":
+        run_sale(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
         return
     # no argument = play without a roll limit (launching `.ot.py` from PowerShell can drop the arguments, which used
     # to fall back to 20 rolls and end the run: the "done 20 rolls" stops seen in the log)
