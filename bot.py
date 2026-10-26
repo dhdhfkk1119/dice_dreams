@@ -1308,7 +1308,34 @@ def find_ad_close_box(img):
                     diag2 = patch[40 + offsets[:, None], 40 - offsets[:, None] + slack].min(axis=1)
                     if float((diag1 < 160).mean()) > 0.4 and float((diag2 < 160).mean()) > 0.4:
                         return x, y
+    if not landscape(img):
+        return find_grey_circle_x(img)
     return None
+
+
+def find_grey_circle_x(img):
+    """Web-style end cards (Pangle/TikTok reward ads) draw the X as a translucent grey disc with a white X on a
+    light page, top-right: neither a dark square nor a bright ring, so the shape tests above miss it."""
+    x0, y0, x1, y1 = 880, 100, 1080, 340
+    g = cv2.cvtColor(img[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY)
+    grey = ((g >= 118) & (g <= 148)).astype(np.float32)
+    white = (g > 235).astype(np.float32)
+    k = np.zeros((101, 101), np.float32)
+    cv2.circle(k, (50, 50), 36, 1.0, -1)
+    k_in = k / k.sum()
+    ring = np.zeros_like(k)
+    cv2.circle(ring, (50, 50), 46, 1.0, -1)
+    cv2.circle(ring, (50, 50), 41, 0.0, -1)
+    ring /= ring.sum()
+    disc = cv2.filter2D(grey + white, -1, k_in, borderType=cv2.BORDER_CONSTANT)   # disc filled by grey or white X
+    wh = cv2.filter2D(white, -1, k_in, borderType=cv2.BORDER_CONSTANT)
+    outside = cv2.filter2D(grey, -1, ring, borderType=cv2.BORDER_CONSTANT)        # nothing grey just outside it
+    score = disc - outside
+    score[(wh < 0.025) | (wh > 0.35) | (disc < 0.78)] = -1
+    _, best, _, loc = cv2.minMaxLoc(score)
+    if best < 0.45:
+        return None
+    return loc[0] + x0, loc[1] + y0
 
 
 def watch_ad(img=None, max_s=150):
