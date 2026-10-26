@@ -1105,7 +1105,8 @@ def feed_pet_if_available(img):
 def video_craze_screen(img):
     """True on a video-reward tier page such as VIDEO CRAZE or SHOW TIME JOURNEY."""
     texts = "".join(t for _, t, _ in ocr(img[:700])[0] or []).upper().replace(" ", "")
-    return ("CRAZE" in texts or "ENDLESSREWARDS" in texts or "ENDLESS" in texts
+    return ("CRAZE" in texts or "ENDLESSREWARDS" in texts or "ENDLESS" in texts or "VIDEOBLAST" in texts
+            or ("VIDEO" in texts and "BLAST" in texts)
             or ("SHOWTIME" in texts and "JOURNEY" in texts))
 
 
@@ -1372,8 +1373,14 @@ def try_video_event(img=None):
            y0 + top + round(VIDEO_ICON_TPL.shape[0] * scale / 2))
     log(f"video event: matched VIDEO icon at {hit} (image score {best[0]:.2f})")
     tap(hit, 2.0)
-    if not is_ad_focus(focus()):  # still on cooldown: the tap did nothing
-        return False
+    if not is_ad_focus(focus()):
+        # the icon may open a tier page (VIDEO BLAST / CRAZE ...) with its own WATCH buttons
+        if video_craze_screen(shot()):
+            n = use_video_craze()
+            if n:
+                _last_ad = time.time()
+            return n > 0
+        return False  # still on cooldown: the tap did nothing
     _last_ad = time.time()
     log("video event: off cooldown, watching the bonus ad")
     ride_ad()
@@ -2735,8 +2742,10 @@ def play(max_rolls, sale_drain=False):
                 continue
             if maybe_trail(img, min_tokens=1, force=True):
                 continue
-            log("no ads, energy, affordable builds, pet feed, or TRAIL left: stopping")
-            return
+            log("no ads, energy, affordable builds, pet feed, or TRAIL left: waiting 5 min, then retrying")
+            time.sleep(300)  # keep running: energy regenerates and the ad cooldown ends
+            no_ad_since = time.time()
+            continue
         if idle % 40 == 1:  # nothing to roll or build: collect free rewards (every ~10 min)
             claim_weekly()
             use_puzzle()
