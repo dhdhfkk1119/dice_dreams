@@ -1268,17 +1268,45 @@ def find_ad_close(img):
     return find_ad_close_box(img)
 
 
+def _box_x_ratio(img, cx, cy):
+    box = img[cy - 50:cy + 50, cx - 50:cx + 50]
+    white = float((box.min(axis=2) > 235).mean())
+    dark = float((box.mean(axis=2) < 120).mean())
+    return white > 0.012 and dark > 0.6
+
+
+def _x_diag_shaped(img, cx, cy, r=15, x_min=235):
+    """True white pixels concentrate on the two diagonals of a tight box around (cx, cy); a lookalike
+    icon (Unity's privacy-shield badge, an info 'i' circle, ...) spreads its white pixels much more evenly,
+    so its diagonal/cross ratio stays near 1 instead of clearing 2."""
+    c = img[cy - r:cy + r, cx - r:cx + r]
+    if c.size == 0:
+        return False
+    m = cv2.resize((c.min(axis=2) > x_min).astype(np.uint8), (21, 21), interpolation=cv2.INTER_AREA)
+    yy, xx = np.mgrid[0:21, 0:21]
+    diag = (abs(xx - yy) <= 2) | (abs(xx + yy - 20) <= 2)
+    cross = ((abs(xx - 10) <= 1) | (abs(yy - 10) <= 1)) & ~diag
+    dm, cm = m[diag].mean(), m[cross].mean()
+    return bool(dm > 0.4 and dm > 2.0 * max(cm, 1e-6))
+
+
 def find_ad_close_box(img):
     """The ad's close X: a white X on a dark rounded square in the top-right or top-left corner.
-    Never the 'download' / 'Google Play' buttons (those open the store)."""
+    Never the 'download' / 'Google Play' buttons (those open the store), and never a same-corner lookalike
+    icon such as Unity's persistent privacy-shield badge or an info 'i' circle: those are bright/dark
+    enough in that corner to pass the plain ratio check, so adlearn's precise corner-glyph candidates are
+    tried first, each confirmed to actually be X-shaped (not just bright-on-dark) before accepting. Only
+    when that finds nothing does the old coarse fixed-point scan - which cannot tell a lookalike from an
+    X - fall back to the plain ratio check alone, same as before."""
     h, w = img.shape[:2]
     if not landscape(img):
+        for cx, cy, _, _ in adlearn.candidates(img):
+            if (cx < w * 0.3 or cx > w * 0.7) and cy < h * 0.2 and _box_x_ratio(img, cx, cy) \
+                    and _x_diag_shaped(img, cx, cy):
+                return cx, cy
         for cx in (1005, 986, 75, 94):
             for cy in (107, 192):  # end cards put the X a bit lower (y~192) and further in (x~986)
-                box = img[cy - 50:cy + 50, cx - 50:cx + 50]
-                white = float((box.min(axis=2) > 235).mean())
-                dark = float((box.mean(axis=2) < 120).mean())
-                if white > 0.012 and dark > 0.6:
+                if _box_x_ratio(img, cx, cy):
                     return cx, cy
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -1338,7 +1366,7 @@ def find_grey_circle_x(img):
     return loc[0] + x0, loc[1] + y0
 
 
-def watch_ad(img=None, max_s=150):
+def watch_ad(img=None, max_s=240):
     """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game.
     No cap here: the caller (main loop) stops asking for more as soon as any energy is back."""
     global _last_ad, _ads_in_batch, _video_bubble_misses
@@ -1436,14 +1464,14 @@ def ad_playing(img):
     return grey >= 0.02 and grey + white >= 0.9
 
 
-def ride_ad(max_s=150):
+def ride_ad(max_s=240):
     try:
         _ride_ad(max_s)
     finally:
         touch_ok()
 
 
-def _ride_ad(max_s=150):
+def _ride_ad(max_s=240):
     """An ad is in front: close it with a known exit button, or try the corner buttons one by one and learn
     (adlearn) which of them leads out, so the next ad with that button closes at once."""
     t0 = time.time()
@@ -1487,6 +1515,14 @@ def _ride_ad(max_s=150):
             else:
                 time.sleep(1)
             continue
+        if landing_page_bar(img):  # the ad was clicked through to its landing page: BACK out, don't hunt for its X
+            # checked before find_ad_close_box: its light toolbar (back arrow / X / title, dark-on-white)
+            # can trip the dark-on-light branch of the generic corner-X scan below (e.g. a comment/flag
+            # glyph in the toolbar), so this specific, purpose-built check must win the race.
+            log("ad: landing page opened (clicked through) - BACK to the ad")
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(1.5)
+            continue
         close = find_ad_close_box(img)
         if close is not None:
             log(f"ad: closing the ad at {close} (detected X)")
@@ -1494,12 +1530,7 @@ def _ride_ad(max_s=150):
             continue
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
-            time.sleep(1.5)
-            continue
-        if landing_page_bar(img):  # the ad was clicked through to its landing page: BACK out, don't hunt for its X
-            log("ad: landing page opened (clicked through) - BACK to the ad")
-            adb("shell", "input", "keyevent", "KEYCODE_BACK")
-            time.sleep(1.5)
+            time.sleep(5)  # just re-read the screen for a real skip/X/known button; never a blind guess
             continue
         dx = adlearn.find_dialog_x(img)
         if dx:
@@ -1531,7 +1562,10 @@ def _ride_ad(max_s=150):
             adb("shell", "input", "keyevent", "KEYCODE_BACK")
             time.sleep(1.5)
             continue
-        if time.time() - t0 > 25 and time.time() - last_try > 4.5:  # watch the video first, then look for the exit
+        # No ad in this app has ever run longer than 2 minutes, so nothing below is tried before that: every
+        # loop until then only re-reads the screen (every ~5 s) for a real skip/X/known button - never a blind
+        # guess, which is what was clicking through into the ad's own landing page mid-video.
+        if time.time() - t0 > 120 and time.time() - last_try > 5:
             cands = adlearn.candidates(img, [(x, y) for x, y, tt in tried if time.time() - tt < 20])
             if cands:
                 c = cands[0]
@@ -1542,21 +1576,21 @@ def _ride_ad(max_s=150):
                 cv2.imwrite(os.path.join(OUT, f"ad_try_{time.strftime('%H%M%S')}.png"), img)
                 tap(c[:2], 1.5)
                 continue
-        if poked and not stored and time.time() - t0 > 45:
+        if poked and not stored and time.time() - t0 > 140:
             # opening the store is harmless (we come back, nothing is ever installed): press the ad's big button
             stored = True
             log("ad: still no X, pressing the ad's main button (store may open, we come back)")
             tap((540, 2150), 3)
             continue
-        if not poked and time.time() - t0 > 30:
+        if not poked and time.time() - t0 > 125:
             # some ads show no exit button until the screen is touched
             poked = True
-            log("ad: no exit button after 30 s, tapping the ad once")
+            log("ad: no exit button after 2 min, tapping the ad once")
             cv2.imwrite(os.path.join(OUT, f"ad_noX_{time.strftime('%H%M%S')}.png"), shot())
             tap((540, 1100), 0.5)
             tried.clear()  # new buttons may have appeared after the touch
             continue
-        if poked and not backed and time.time() - t0 > 75:
+        if poked and not backed and time.time() - t0 > 170:
             # BACK often opens an end card that has the X
             backed = True
             log("ad: still no exit button, pressing BACK once to reach the end card")
@@ -1564,7 +1598,7 @@ def _ride_ad(max_s=150):
             time.sleep(2)
             tried.clear()
             continue
-        time.sleep(1.5)
+        time.sleep(5)
     else:
         log("ad: still showing after the time limit, pressing BACK")
         adb("shell", "input", "keyevent", "KEYCODE_BACK")
