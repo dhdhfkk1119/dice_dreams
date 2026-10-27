@@ -1300,6 +1300,9 @@ def find_ad_close_box(img):
     X - fall back to the plain ratio check alone, same as before."""
     h, w = img.shape[:2]
     if not landscape(img):
+        wb = find_white_box_x(img)
+        if wb:
+            return wb
         for cx, cy, _, _ in adlearn.candidates(img):
             if (cx < w * 0.3 or cx > w * 0.7) and cy < h * 0.2 and _box_x_ratio(img, cx, cy) \
                     and _x_diag_shaped(img, cx, cy):
@@ -1338,6 +1341,26 @@ def find_ad_close_box(img):
                         return x, y
     if not landscape(img):
         return find_grey_circle_x(img)
+    return None
+
+
+def find_white_box_x(img):
+    """A white rounded square with a coloured (green/grey/black) X in a top corner of a dark ad: the opposite of
+    the white-X-on-dark-box style, so the dark-box test misses it and can even match the empty black below it."""
+    for x0, x1 in ((860, 1080), (0, 220)):
+        g = cv2.cvtColor(img[10:300, x0:x1], cv2.COLOR_BGR2GRAY)
+        n, lab, st, cen = cv2.connectedComponentsWithStats((g > 235).astype(np.uint8), connectivity=8)
+        for i in range(1, n):
+            x, y, bw, bh, area = st[i]
+            if not (55 <= bw <= 120 and 55 <= bh <= 120) or abs(bw - bh) > 12 or area < 0.55 * bw * bh:
+                continue
+            ring = g[max(y - 8, 0):y + bh + 8, max(x - 8, 0):x + bw + 8]
+            if float((ring < 90).mean()) < 0.12:  # the square sits on a dark background
+                continue
+            inner = g[y + bh // 4:y + 3 * bh // 4, x + bw // 4:x + 3 * bw // 4]
+            if float((inner < 200).mean()) < 0.06:  # the X glyph itself is not white
+                continue
+            return x0 + x + bw // 2, 10 + y + bh // 2
     return None
 
 
@@ -2276,13 +2299,17 @@ def run_sale(max_rolls):
     log("sale: finished hammer upgrades; stopping without normal rolls")
 
 
-def run_ads_only(max_ads, until_hammer=False):
+def run_ads_only(max_ads, until_hammer=False, cycle=False):
     """CLI `python bot.py ads N`: ignore rolling/building/minigames entirely (none of those can even trigger
     without a ROLL tap) and just watch up to N free videos in a row, handling only what can actually stand
     between one video and the next: Endless Rewards, a stray event page, an ad/app already in front, a popup,
     or a leftover share sheet from a kingdom that just finished. With `until_hammer`, it keeps watching these
-    free videos until the lobby's golden-hammer discount appears. It never switches to rolling or building."""
+    free videos until the lobby's golden-hammer discount appears. It never switches to rolling or building.
+    With `cycle` (the default for `ads`), once the lobby has offered no video for NO_AD_SWITCH_S it plays the game
+    until the energy is gone (play(stop_when_empty=True)) and then goes back to watching videos, forever: the
+    stored energy piles up from the videos and is spent in one go."""
     watched = 0
+    last_video = time.time()
     last_notice = time.time()
     target = " until the golden hammer appears" if until_hammer else ""
     log(f"ads-only mode: watching up to {max_ads} free videos{target}")
@@ -2299,7 +2326,7 @@ def run_ads_only(max_ads, until_hammer=False):
             tier_ads = use_video_craze()
             watched += tier_ads
             if tier_ads:
-                last_notice = time.time()
+                last_notice = last_video = time.time()
                 log(f"ads mode: watched {tier_ads} Endless Rewards video tier(s), {watched}/{max_ads} total")
             continue
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
@@ -2327,9 +2354,14 @@ def run_ads_only(max_ads, until_hammer=False):
         if roll_visible(img) and time.time() - _last_ad > 20:
             if try_video_event(img) or watch_ad(img):
                 watched += 1
-                last_notice = time.time()
+                last_notice = last_video = time.time()
                 log(f"ads mode: {watched}/{max_ads} watched")
                 continue
+        if cycle and roll_visible(img) and time.time() - last_video >= NO_AD_SWITCH_S:
+            log(f"ads mode: no lobby video for {NO_AD_SWITCH_S}s: playing until the energy is used up")
+            play(1_000_000, stop_when_empty=True)
+            last_video = time.time()  # videos get a fresh NO_AD_SWITCH_S window after each play phase
+            continue
         if time.time() - last_notice >= 60:
             log("ads-only mode: no free video available; staying in ad-only mode without rolling or building")
             last_notice = time.time()
@@ -2337,9 +2369,11 @@ def run_ads_only(max_ads, until_hammer=False):
     log(f"ads-only mode: done, watched {watched} ads")
 
 
-def play(max_rolls, sale_drain=False):
+def play(max_rolls, sale_drain=False, stop_when_empty=False):
     """Normal play: build/roll/trail while there's energy or money, watch ads once both run out, repeat.
-    `sale_drain` spends stored energy without building, TRAIL, or starting more ads, then returns when empty."""
+    `sale_drain` spends stored energy without building, TRAIL, or starting more ads, then returns when empty.
+    `stop_when_empty` plays normally (builds, TRAIL...) but returns "energy_depleted" as soon as the energy is
+    gone instead of watching ads itself: the ads-first cycle in run_ads_only() takes over from there."""
     touch_ok()
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
@@ -2358,7 +2392,7 @@ def play(max_rolls, sale_drain=False):
     no_ad_since = None
     no_ad_fallback = False
     e0 = energy(shot())
-    if not sale_drain and e0 is not None and e0 < 60:
+    if not sale_drain and not stop_when_empty and e0 is not None and e0 < 60:
         refilling = True
         no_ad_since = time.time()
         log(f"starting with {e0} energy (<60): watching ads first")
@@ -2765,6 +2799,9 @@ def play(max_rolls, sale_drain=False):
                         continue
             log(f"sale: stored energy depleted after {rolls} rolls")
             return "energy_depleted"
+        if stop_when_empty:
+            log(f"energy used up after {rolls} rolls: back to watching lobby ads")
+            return "energy_depleted"
         if not refilling:
             global _ads_in_batch
             refilling = True
@@ -2825,7 +2862,10 @@ def main():
         if ads_arg.lower() == "hammer":
             run_ads_only(10000, until_hammer=True)
         else:
-            run_ads_only(int(ads_arg) if ads_arg else 10000)
+            # `ads` / `ads N` cycle between lobby videos and playing; `ads pure` never leaves the videos
+            pure = "pure" in [a.lower() for a in sys.argv[2:]]
+            nums = [a for a in sys.argv[2:] if a.isdigit()]
+            run_ads_only(int(nums[0]) if nums else 1_000_000, cycle=not pure)
         return
     if len(sys.argv) > 1 and sys.argv[1].lower() == "sale":
         run_sale(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
