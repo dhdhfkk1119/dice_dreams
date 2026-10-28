@@ -1,0 +1,986 @@
+00:55:33 ads-only mode: watching up to 1000000 free videos
+00:55:35 ad: end card with its own X at (979, 277): closing it
+00:55:38 ad: closing the ad at (994, 176) (detected X)
+00:56:08 stuck for 27s without the lobby: recovery step 1
+00:56:12 stuck for 32s without the lobby: recovery step 2
+00:56:17 stuck for 36s without the lobby: recovery step 3
+00:56:18 recovery: trying the corner glyph at (991, 83)
+00:56:21 stuck for 40s without the lobby: recovery step 4
+00:56:25 stuck for 44s without the lobby: recovery step 5
+00:56:26 recovery: trying the corner glyph at (991, 83)
+00:56:29 stuck for 48s without the lobby: recovery step 6
+00:56:30 recovery: BACK
+00:56:33 ad: matched lobby video bubble at (558, 774) (score 0.97, vid_tpl_b.png)
+00:56:36 ad: watching a free video #1 (refilling to 50 energy, bubble at (558, 774))
+00:56:37 ad: landing page opened (clicked through) - BACK to the ad
+00:56:39 ad: landing page opened (clicked through) - BACK to the ad
+00:56:42 ad: closing the ad at (994, 176) (detected X)
+00:56:45 ads mode: 1/1000000 watched
+00:57:11 stuck for 27s without the lobby: recovery step 1
+00:57:15 stuck for 30s without the lobby: recovery step 2
+00:57:19 stuck for 34s without the lobby: recovery step 3
+00:57:20 recovery: trying the corner glyph at (991, 83)
+00:57:23 stuck for 38s without the lobby: recovery step 4
+00:57:27 stuck for 42s without the lobby: recovery step 5
+00:57:28 recovery: trying the corner glyph at (991, 83)
+00:57:31 stuck for 46s without the lobby: recovery step 6
+00:57:32 recovery: BACK
+00:57:35 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+00:57:38 ad: watching a free video #2 (refilling to 50 energy, bubble at (580, 738))
+00:58:43 ad: closing the ad at (251, 180)
+00:58:45 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+00:58:54 ad: closing the ad at (986, 191) (detected X)
+00:58:57 ads mode: 2/1000000 watched
+00:58:58 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+00:59:02 ad: watching a free video #3 (refilling to 50 energy, bubble at (580, 738))
+00:59:36 ad: closing the ad at (120, 255)
+00:59:40 ad: closing the ad at (98, 244) (detected X)
+00:59:43 ad: closing the ad at (98, 244) (detected X)
+00:59:47 ad: closing the ad at (98, 244) (detected X)
+00:59:50 ad: the X at (98, 244) did nothing 3 times - ignoring it, looking for another exit
+01:00:17 ad: closing the ad at (1054, 148) (detected X)
+01:00:19 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:00:28 ad: closing the ad at (1014, 174) (detected X)
+01:00:31 ads mode: 3/1000000 watched
+01:00:33 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:00:36 ad: watching a free video #4 (refilling to 50 energy, bubble at (580, 738))
+01:02:14 ad: closing the ad at (1005, 107) (detected X)
+01:02:17 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:02:26 ad: closing the ad at (1005, 107) (detected X)
+01:02:30 ad: closing the ad at (1004, 106) (detected X)
+01:02:32 ads mode: 4/1000000 watched
+01:02:34 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:02:37 ad: watching a free video #5 (refilling to 50 energy, bubble at (580, 738))
+01:04:15 ad: closing the ad at (1005, 107) (detected X)
+01:04:18 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:04:27 ad: closing the ad at (1005, 107) (detected X)
+01:04:31 ad: closing the ad at (1004, 106) (detected X)
+01:04:33 ads mode: 5/1000000 watched
+01:04:35 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:04:38 ad: watching a free video #6 (refilling to 50 energy, bubble at (580, 738))
+01:06:17 ad: closing the ad at (1005, 107) (detected X)
+01:06:27 ad: closing the ad at (1004, 106) (detected X)
+01:06:30 ads mode: 6/1000000 watched
+01:06:31 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:06:35 ad: watching a free video #7 (refilling to 50 energy, bubble at (580, 738))
+01:08:13 ad: closing the ad at (1005, 107) (detected X)
+01:08:23 ad: closing the ad at (1004, 106) (detected X)
+01:08:26 ads mode: 7/1000000 watched
+01:08:27 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:08:30 ad: watching a free video #8 (refilling to 50 energy, bubble at (580, 738))
+01:10:12 ad: closing the ad at (1005, 107) (detected X)
+01:10:14 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:10:23 ad: closing the ad at (1005, 107) (detected X)
+01:10:27 ad: closing the ad at (1004, 106) (detected X)
+01:10:30 ads mode: 8/1000000 watched
+01:10:31 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:10:34 ad: watching a free video #9 (refilling to 50 energy, bubble at (580, 738))
+01:12:14 ad: closing the ad at (1005, 107) (detected X)
+01:12:17 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:12:26 ad: closing the ad at (1005, 107) (detected X)
+01:12:29 ad: closing the ad at (1004, 106) (detected X)
+01:12:32 ads mode: 9/1000000 watched
+01:12:34 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:12:37 ad: watching a free video #10 (refilling to 50 energy, bubble at (580, 738))
+01:12:38 ad: closing the ad at (918, 282) (detected X)
+01:12:48 ad: closing the ad at (995, 216) (detected X)
+01:12:50 ad: left the game (ungpop.android.mpop/com.samsungpop.phonelib.SSSmartActivity}), going back
+01:12:54 ad: closing the ad at (989, 216) (detected X)
+01:13:04 ad: closing the ad at (989, 216) (detected X)
+01:13:06 ads mode: 10/1000000 watched
+01:13:08 ad: matched lobby video bubble at (580, 738) (score 0.96, vid_tpl_b.png)
+01:13:11 ad: watching a free video #11 (refilling to 50 energy, bubble at (580, 738))
+01:13:12 ad: closing the ad at (918, 282) (detected X)
+01:13:22 ad: closing the ad at (995, 216) (detected X)
+01:13:25 ad: left the game (ungpop.android.mpop/com.samsungpop.phonelib.SSSmartActivity}), going back
+01:13:28 ad: closing the ad at (989, 216) (detected X)
+01:13:38 ad: closing the ad at (989, 216) (detected X)
+01:13:41 ads mode: 11/1000000 watched
+01:14:07 stuck for 26s without the lobby: recovery step 1
+01:14:08 recovery: pressing 'CONTINUE' at (540, 1957)
+01:14:11 stuck for 30s without the lobby: recovery step 2
+01:14:12 recovery: pressing 'COLLECT' at (540, 1778)
+01:14:15 stuck for 34s without the lobby: recovery step 3
+01:14:16 recovery: BACK
+01:14:18 stuck for 38s without the lobby: recovery step 4
+01:14:22 stuck for 41s without the lobby: recovery step 5
+01:14:26 ad: matched lobby video bubble at (538, 736) (score 0.88, vid_tpl84.png)
+01:14:29 ad: watching a free video #12 (refilling to 50 energy, bubble at (538, 736))
+01:14:30 ad: landing page opened (clicked through) - BACK to the ad
+01:14:32 ad: landing page opened (clicked through) - BACK to the ad
+01:14:34 ad: closing the ad at (994, 176) (detected X)
+01:14:37 ads mode: 12/1000000 watched
+01:15:04 stuck for 26s without the lobby: recovery step 1
+01:15:07 stuck for 30s without the lobby: recovery step 2
+01:15:11 stuck for 33s without the lobby: recovery step 3
+01:15:12 recovery: trying the corner glyph at (991, 83)
+01:15:15 stuck for 37s without the lobby: recovery step 4
+01:15:18 stuck for 41s without the lobby: recovery step 5
+01:15:19 recovery: trying the corner glyph at (991, 83)
+01:15:22 stuck for 45s without the lobby: recovery step 6
+01:15:23 recovery: BACK
+01:15:26 ad: matched lobby video bubble at (616, 752) (score 0.92, vid_tpl_b.png)
+01:15:29 ad: watching a free video #13 (refilling to 50 energy, bubble at (616, 752))
+01:17:13 ad: closing the ad at (1005, 107) (detected X)
+01:17:15 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:17:24 ad: closing the ad at (1004, 106) (detected X)
+01:17:27 ads mode: 13/1000000 watched
+01:17:29 ad: matched lobby video bubble at (616, 752) (score 0.92, vid_tpl_b.png)
+01:17:32 ad: watching a free video #14 (refilling to 50 energy, bubble at (616, 752))
+01:19:14 ad: closing the ad at (1005, 107) (detected X)
+01:19:17 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:19:26 ad: closing the ad at (1005, 107) (detected X)
+01:19:29 ad: closing the ad at (1004, 106) (detected X)
+01:19:32 ads mode: 14/1000000 watched
+01:19:34 ad: matched lobby video bubble at (616, 752) (score 0.92, vid_tpl_b.png)
+01:19:37 ad: watching a free video #15 (refilling to 50 energy, bubble at (616, 752))
+01:21:42 ad: unknown button at (969, 203) size 37x44: trying it (1)
+01:21:45 ad: no exit button after 2 min, tapping the ad once
+01:21:48 ad: unknown button at (969, 203) size 37x42: trying it (1)
+01:21:58 ad: unknown button at (1062, 95) size 18x37: trying it (2)
+01:22:01 ad: still no X, pressing the ad's main button (store may open, we come back)
+01:22:11 ads mode: 15/1000000 watched
+01:22:13 ad: matched lobby video bubble at (616, 752) (score 0.92, vid_tpl_b.png)
+01:22:20 ad: closing the ad at (98, 98) (detected X)
+01:22:30 ad: closing the ad at (98, 98) (detected X)
+01:22:33 ad: closing the ad at (98, 98) (detected X)
+01:22:37 ad: closing the ad at (941, 196)
+01:22:47 ad: closing the ad at (941, 196)
+01:22:51 ad: closing the ad at (862, 195)
+01:22:53 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+01:22:55 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+01:23:03 ad: matched lobby video bubble at (586, 744) (score 0.89, vid_tpl_b.png)
+01:23:09 ad: matched lobby video bubble at (586, 744) (score 0.89, vid_tpl_b.png)
+01:23:13 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+01:23:16 ad: closing the ad at (98, 98) (detected X)
+01:23:26 ad: closing the ad at (98, 98) (detected X)
+01:23:30 ad: closing the ad at (98, 98) (detected X)
+01:23:34 ad: closing the ad at (941, 196)
+01:23:44 ad: closing the ad at (941, 196)
+01:24:12 ad: closing the ad at (984, 192) (detected X)
+01:24:17 ad: matched lobby video bubble at (586, 744) (score 0.89, vid_tpl_b.png)
+01:24:20 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+01:24:48 ad: closing the ad at (984, 192) (detected X)
+01:24:52 ad: matched lobby video bubble at (586, 744) (score 0.89, vid_tpl_b.png)
+01:25:24 ad: closing the ad at (984, 192) (detected X)
+01:25:28 ad: matched lobby video bubble at (586, 744) (score 0.89, vid_tpl_b.png)
+01:25:31 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+01:25:34 ad on screen without X: waiting / poking
+01:25:47 ad: closing the ad at (1008, 152) (detected X)
+01:26:06 multiplier steps available: [1, 2, 3, 5, 8, 10, 25, 50]
+01:26:13 multiplier -> x50
+01:26:13 roll #1 energy=1280
+01:26:15 roll #2 energy=1280
+01:26:17 roll #3 energy=1280
+01:26:19 roll #4 energy=1280
+01:26:24 roll button dimmed for a while: tapping ROLL to go on
+01:26:26 roll #6 energy=80
+01:26:29 roll #7 energy=80
+01:26:34 roll button dimmed for a while: tapping ROLL to go on
+01:26:36 roll #9 energy=80
+01:26:39 unknown screen: saved unknown_012639.png + its texts (shots/unknown_log.txt), tapping around
+01:26:44 attack: pick target pin (553, 596) (4 pins found)
+01:26:51 aim_live: samples=70 tgt=290 half=0.900 fit_err=27.8px t_off=0.588
+01:26:51 aim_live: poor fit -> release now
+01:26:58 button 'COLLECT' at 541,1807
+01:27:00 roll #10 energy=80
+01:27:02 roll #11 energy=80
+01:27:05 X button at (991, 436): closing
+01:27:08 roll #12 energy=80
+01:27:11 unknown screen: saved unknown_012711.png + its texts (shots/unknown_log.txt), tapping around
+01:27:13 ROLL keeps opening an offer popup: refreshing the visible energy count
+01:27:14 X button at (991, 436): closing
+01:27:17 X button at (991, 436): closing
+01:27:20 roll #13 energy=80
+01:27:22 roll #14 energy=80
+01:27:25 roll #15 energy=80
+01:27:27 roll #16 energy=80
+01:27:29 roll #17 energy=80
+01:27:31 roll #18 energy=80
+01:27:34 roll #19 energy=80
+01:27:36 unknown screen: saved unknown_012736.png + its texts (shots/unknown_log.txt), tapping around
+01:27:39 attack: pick target pin (532, 819) (0 pins found)
+01:27:46 aim_live: samples=70 tgt=219 half=0.900 fit_err=29.0px t_off=0.588
+01:27:46 aim_live: poor fit -> release now
+01:27:52 button 'COLLECT' at 541,1807
+01:27:54 roll #20 energy=80
+01:27:57 roll #21 energy=80
+01:27:59 roll #22 energy=80
+01:28:03 unknown screen: saved unknown_012803.png + its texts (shots/unknown_log.txt), tapping around
+01:28:05 roll #23 energy=80
+01:28:07 roll #24 energy=80
+01:28:09 roll #25 energy=80
+01:28:11 roll #26 energy=80
+01:28:14 roll #27 energy=80
+01:28:16 roll #28 energy=80
+01:28:18 roll #29 energy=80
+01:28:20 roll #30 energy=80
+01:28:26 roll button dimmed for a while: tapping ROLL to go on
+01:28:28 roll #32 energy=80
+01:28:30 roll #33 energy=80
+01:28:34 unknown screen: saved unknown_012834.png + its texts (shots/unknown_log.txt), tapping around
+01:28:39 attack: pick target pin (798, 846) (3 pins found)
+01:28:46 aim_live: samples=70 tgt=270 half=0.900 fit_err=23.3px t_off=0.588
+01:28:47 aim_live: released at 1.822 (cross 2.410); froze at x=237 (target 270, -33 px) at 2.022; timing error +0.230 s
+01:28:53 button 'COLLECT' at 541,1807
+01:28:56 roll #34 energy=80
+01:28:58 roll #35 energy=80
+01:29:00 roll #36 energy=80
+01:29:05 roll button dimmed for a while: tapping ROLL to go on
+01:29:07 roll #38 energy=80
+01:29:10 roll #39 energy=80
+01:29:13 unknown screen: saved unknown_012913.png + its texts (shots/unknown_log.txt), tapping around
+01:29:23 fight screen: move #2
+01:29:26 fight screen: move #3
+01:29:28 fight screen: move #1
+01:29:31 fight screen: move #2
+01:29:33 fight screen: move #3
+01:29:36 fight screen: move #1
+01:29:39 pinball: results screen, button at (541, 1807)
+01:29:44 roll #40 energy=80
+01:29:47 roll #41 energy=80
+01:29:50 unknown screen: saved unknown_012950.png + its texts (shots/unknown_log.txt), tapping around
+01:29:56 roll #42 energy=80
+01:29:59 unknown screen: saved unknown_012959.png + its texts (shots/unknown_log.txt), tapping around
+01:30:05 roll #43 energy=80
+01:30:07 roll #44 energy=80
+01:30:09 roll #45 energy=80
+01:30:14 roll button dimmed for a while: tapping ROLL to go on
+01:30:16 roll #47 energy=80
+01:30:19 roll #48 energy=80
+01:30:21 roll #49 energy=80
+01:30:23 roll #50 energy=80
+01:30:25 roll #51 energy=80
+01:30:29 missions / Dream Pass page: back arrow at (103, 158)
+01:30:34 missions / Dream Pass page: back arrow at (103, 158)
+01:30:38 missions / Dream Pass page: back arrow at (103, 158)
+01:30:41 roll #52 energy=57
+01:30:45 offer screen: closing without selecting tiles at (1001, 320)
+01:30:49 X button at (963, 481): closing
+01:30:53 offer screen: closing without selecting tiles at (1014, 528)
+01:30:57 multiplier x5 unreachable, rolling at x1
+01:30:57 roll #53 energy=7
+01:30:59 another app has focus (om.android.intentresolver.ChooserActivityLauncher}): leaving it
+01:31:02 ROLL keeps opening an offer popup: refreshing the visible energy count
+01:31:04 invite page: leaving without inviting anyone (exit at (978, 514))
+01:31:08 multiplier -> x5
+01:31:08 roll #54 energy=7
+01:31:11 offer screen: closing without selecting tiles at (1001, 320)
+01:31:15 X button at (963, 481): closing
+01:31:18 offer screen: closing without selecting tiles at (1014, 528)
+01:31:22 invite page: leaving without inviting anyone (exit at (978, 514))
+01:31:27 multiplier -> x2
+01:31:27 roll #55 energy=2
+01:31:30 ROLL keeps opening an offer popup: refreshing the visible energy count
+01:31:31 offer screen: closing without selecting tiles at (1001, 320)
+01:31:34 X button at (963, 481): closing
+01:31:38 offer screen: closing without selecting tiles at (1014, 528)
+01:31:41 invite page: leaving without inviting anyone (exit at (978, 514))
+01:31:45 X button at (920, 661): closing
+01:31:47 energy used up after 55 rolls: back to watching lobby ads
+01:31:48 video event: matched VIDEO icon at (983, 502) (image score 0.87)
+01:31:53 video event: trying WATCH tier at (588, 994)
+01:31:58 video event: no ad opened at (588, 994); trying the next WATCH
+01:31:58 video event: trying WATCH tier at (590, 1994)
+01:32:02 video event: no ad opened at (590, 1994); trying the next WATCH
+01:32:02 video event: trying WATCH tier at (590, 1494)
+01:32:07 video event: no ad opened at (590, 1494); trying the next WATCH
+01:32:07 video event: done, watched 0 tier(s)
+01:32:09 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+01:32:12 another app has focus (e.browser.customtabs.TranslucentCustomTabActivity}): leaving it
+01:32:15 ad: closing the ad at (978, 98) (detected X)
+01:32:18 ad: closing the ad at (978, 98) (detected X)
+01:32:21 ad: closing the ad at (978, 98) (detected X)
+01:32:25 ad: the X at (978, 98) did nothing 3 times - ignoring it, looking for another exit
+01:32:25 ad: closing the ad at (941, 195)
+01:32:35 ad: closing the ad at (1008, 152) (detected X)
+01:32:40 video event: trying WATCH tier at (588, 994)
+01:32:44 video event: no ad opened at (588, 994); trying the next WATCH
+01:32:44 video event: trying WATCH tier at (590, 1994)
+01:32:49 video event: no ad opened at (590, 1994); trying the next WATCH
+01:32:49 video event: trying WATCH tier at (590, 1495)
+01:32:54 video event: no ad opened at (590, 1495); trying the next WATCH
+01:32:54 video event: done, watched 0 tier(s)
+01:32:56 another app has focus (e.browser.customtabs.TranslucentCustomTabActivity}): leaving it
+01:32:59 ad: closing the ad at (942, 195)
+01:33:08 ad: closing the ad at (1008, 152) (detected X)
+01:33:13 ad: matched lobby video bubble at (664, 758) (score 0.93, vid_tpl_b.png)
+01:33:16 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+01:33:20 video event: trying WATCH tier at (588, 994)
+01:35:04 ad: closing the ad at (1005, 107) (detected X)
+01:35:07 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:35:16 ad: closing the ad at (1005, 107) (detected X)
+01:35:19 ad: closing the ad at (1004, 106) (detected X)
+01:35:24 video event: trying WATCH tier at (588, 994)
+01:37:05 ad: closing the ad at (1005, 107) (detected X)
+01:37:08 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:37:17 ad: closing the ad at (1005, 107) (detected X)
+01:37:21 ad: closing the ad at (1004, 106) (detected X)
+01:37:24 video event: done, watched 2 tier(s)
+01:37:25 ads mode: watched 2 Endless Rewards video tier(s), 17/1000000 total
+01:37:30 video event: trying WATCH tier at (588, 994)
+01:37:41 ad: closing the ad at (992, 86) (detected X)
+01:37:48 video event: trying WATCH tier at (588, 994)
+01:39:30 ad: closing the ad at (1005, 107) (detected X)
+01:39:32 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:39:41 ad: closing the ad at (1005, 107) (detected X)
+01:39:45 ad: closing the ad at (1004, 106) (detected X)
+01:39:49 video event: done, watched 2 tier(s)
+01:39:50 ads mode: watched 2 Endless Rewards video tier(s), 19/1000000 total
+01:39:55 video event: trying WATCH tier at (588, 994)
+01:41:38 ad: closing the ad at (1005, 107) (detected X)
+01:41:40 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:41:49 ad: closing the ad at (1005, 107) (detected X)
+01:41:53 ad: closing the ad at (1004, 106) (detected X)
+01:41:57 video event: trying WATCH tier at (588, 1494)
+01:43:45 ad: closing the ad at (1005, 107) (detected X)
+01:43:47 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:43:56 ad: closing the ad at (1005, 107) (detected X)
+01:44:00 ad: closing the ad at (1004, 106) (detected X)
+01:44:11 video event: trying WATCH tier at (588, 1993)
+01:45:52 ad: closing the ad at (1005, 107) (detected X)
+01:45:55 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:46:03 ad: closing the ad at (1005, 107) (detected X)
+01:46:07 ad: closing the ad at (1004, 106) (detected X)
+01:46:11 video event: done, watched 3 tier(s)
+01:46:12 ads mode: watched 3 Endless Rewards video tier(s), 22/1000000 total
+01:46:13 ad: matched lobby video bubble at (610, 730) (score 0.91, vid_tpl84.png)
+01:46:16 ad: watching a free video #16 (refilling to 50 energy, bubble at (610, 730))
+01:47:55 ad: closing the ad at (1005, 107) (detected X)
+01:47:57 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:48:06 ad: closing the ad at (1005, 107) (detected X)
+01:48:10 ad: closing the ad at (1004, 106) (detected X)
+01:48:13 ads mode: 23/1000000 watched
+01:48:14 ad: matched lobby video bubble at (610, 730) (score 0.91, vid_tpl84.png)
+01:48:17 ad: watching a free video #17 (refilling to 50 energy, bubble at (610, 730))
+01:49:59 ad: closing the ad at (1005, 107) (detected X)
+01:50:02 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:50:11 ad: closing the ad at (1004, 106) (detected X)
+01:50:14 ads mode: 24/1000000 watched
+01:50:15 ad: matched lobby video bubble at (610, 730) (score 0.91, vid_tpl84.png)
+01:50:19 ad: watching a free video #18 (refilling to 50 energy, bubble at (610, 730))
+01:52:01 ad: closing the ad at (1005, 107) (detected X)
+01:52:04 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:52:13 ad: closing the ad at (1004, 106) (detected X)
+01:52:15 ads mode: 25/1000000 watched
+01:52:17 ad: matched lobby video bubble at (608, 732) (score 0.90, vid_tpl84.png)
+01:52:20 ad: watching a free video #19 (refilling to 50 energy, bubble at (608, 732))
+01:54:03 ad: closing the ad at (1005, 107) (detected X)
+01:54:13 ad: closing the ad at (1004, 106) (detected X)
+01:54:16 ads mode: 26/1000000 watched
+01:54:18 ad: matched lobby video bubble at (608, 732) (score 0.90, vid_tpl84.png)
+01:54:21 ad: watching a free video #20 (refilling to 50 energy, bubble at (608, 732))
+01:56:06 ad: closing the ad at (1005, 107) (detected X)
+01:56:16 ad: closing the ad at (1004, 106) (detected X)
+01:56:19 ads mode: 27/1000000 watched
+01:56:21 ad: matched lobby video bubble at (608, 732) (score 0.90, vid_tpl84.png)
+01:56:24 ad: watching a free video #21 (refilling to 50 energy, bubble at (608, 732))
+01:56:37 ad: closing the ad at (1038, 312) (detected X)
+01:56:40 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+01:57:35 ad: closing the ad at (1038, 312) (detected X)
+01:57:38 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+01:58:07 ad: closing the ad at (1005, 107) (detected X)
+01:58:10 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+01:58:25 ad: closing the ad at (1005, 107) (detected X)
+01:58:28 ad: closing the ad at (1004, 106) (detected X)
+01:58:31 ads mode: 28/1000000 watched
+01:58:33 ad: matched lobby video bubble at (608, 732) (score 0.90, vid_tpl84.png)
+01:58:36 ad: watching a free video #22 (refilling to 50 energy, bubble at (608, 732))
+02:00:16 ad: closing the ad at (1005, 107) (detected X)
+02:00:18 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:00:34 ad: closing the ad at (1005, 107) (detected X)
+02:00:37 ad: closing the ad at (1004, 106) (detected X)
+02:00:40 ads mode: 29/1000000 watched
+02:00:42 ad: matched lobby video bubble at (608, 732) (score 0.90, vid_tpl84.png)
+02:00:45 ad: watching a free video #23 (refilling to 50 energy, bubble at (608, 732))
+02:02:28 ad: closing the ad at (1005, 107) (detected X)
+02:02:31 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:02:40 ad: closing the ad at (1004, 106) (detected X)
+02:02:43 ads mode: 30/1000000 watched
+02:02:44 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:02:47 ad: watching a free video #24 (refilling to 50 energy, bubble at (550, 758))
+02:04:26 ad: closing the ad at (1005, 107) (detected X)
+02:04:29 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:04:38 ad: closing the ad at (1005, 107) (detected X)
+02:04:42 ad: closing the ad at (1004, 106) (detected X)
+02:04:45 ads mode: 31/1000000 watched
+02:04:46 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:05:18 ad: closing the ad at (984, 192) (detected X)
+02:05:22 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:05:53 ad: closing the ad at (984, 192) (detected X)
+02:05:58 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:06:01 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+02:06:04 ad: closing the ad at (98, 98) (detected X)
+02:06:14 ad: closing the ad at (1008, 152) (detected X)
+02:06:19 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:06:32 ad: closing the ad at (941, 195)
+02:06:42 ad: closing the ad at (941, 195)
+02:06:46 ad: closing the ad at (863, 196)
+02:06:48 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+02:06:50 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+02:06:58 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:07:01 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+02:07:05 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:07:18 ad: closing the ad at (941, 195)
+02:07:28 ad: closing the ad at (941, 195)
+02:07:32 ad: closing the ad at (863, 196)
+02:07:34 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+02:07:36 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+02:07:43 ad: matched lobby video bubble at (550, 758) (score 0.96, vid_tpl_b.png)
+02:07:47 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+02:08:03 multiplier steps available: [1, 2, 3, 5, 8, 10, 25, 50]
+02:08:10 multiplier -> x50
+02:08:10 roll #1 energy=810
+02:08:12 roll #2 energy=805
+02:08:15 roll #3 energy=800
+02:08:20 roll button dimmed for a while: tapping ROLL to go on
+02:08:22 roll #5 energy=795
+02:08:24 roll #6 energy=560
+02:08:29 roll button dimmed for a while: tapping ROLL to go on
+02:08:32 roll #8 energy=498
+02:08:37 roll button dimmed for a while: tapping ROLL to go on
+02:08:39 roll #10 energy=435
+02:08:41 roll #11 energy=372
+02:08:44 roll #12 energy=310
+02:08:46 roll #13 energy=248
+02:08:49 roll #14 energy=185
+02:08:51 roll #15 energy=122
+02:08:53 roll #16 energy=160
+02:08:58 roll button dimmed for a while: tapping ROLL to go on
+02:09:00 roll #18 energy=122
+02:09:04 unknown screen: saved unknown_020904.png + its texts (shots/unknown_log.txt), tapping around
+02:09:06 roll #19 energy=110
+02:09:08 roll #20 energy=85
+02:09:11 unknown screen: saved unknown_020911.png + its texts (shots/unknown_log.txt), tapping around
+02:09:14 attack: pick target pin (532, 819) (0 pins found)
+02:09:30 attack: sling screen did not open, trying the next pin
+02:09:32 attack: pick target pin (254, 767) (4 pins found)
+02:09:39 aim_live: samples=70 tgt=274 half=0.900 fit_err=33.7px t_off=0.600
+02:09:39 aim_live: poor fit -> release now
+02:09:46 button 'COLLECT' at 541,1807
+02:09:48 roll #21 energy=60
+02:09:50 roll #22 energy=35
+02:09:52 roll #23 energy=60
+02:09:56 offer screen: closing without selecting tiles at (1001, 320)
+02:09:59 X button at (963, 481): closing
+02:10:02 offer screen: closing without selecting tiles at (1014, 528)
+02:10:06 invite page: leaving without inviting anyone (exit at (982, 508))
+02:10:09 roll #24 energy=10
+02:10:11 energy used up after 24 rolls: back to watching lobby ads
+02:10:13 offer screen: closing without selecting tiles at (1001, 320)
+02:10:18 offer screen: closing without selecting tiles at (1014, 528)
+02:10:26 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+02:10:41 ad: bubble not visible; panning lobby camera to search
+02:11:01 ad: bubble not visible; panning lobby camera to search
+02:11:07 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:11:10 ad: watching a free video #25 (refilling to 50 energy, bubble at (382, 756))
+02:12:48 ad: closing the ad at (1005, 107) (detected X)
+02:12:51 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:13:00 ad: closing the ad at (1005, 107) (detected X)
+02:13:04 ad: closing the ad at (1004, 106) (detected X)
+02:13:07 ads mode: 32/1000000 watched
+02:13:08 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:13:11 ad: watching a free video #26 (refilling to 50 energy, bubble at (382, 756))
+02:13:12 ad: closing the ad at (907, 308) (detected X)
+02:13:15 ad: left the game (ry.yanolja.nativeapp/com.nol.ui.feature.intro.IntroActivity}), going back
+02:13:18 ad: closing the ad at (907, 308) (detected X)
+02:13:21 ad: left the game (mCurrentFocus=null), going back
+02:13:24 ad: closing the ad at (907, 308) (detected X)
+02:13:27 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+02:13:28 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+02:13:31 ad: the X at (907, 308) did nothing 3 times - ignoring it, looking for another exit
+02:15:03 ad: closing the ad at (1005, 107) (detected X)
+02:15:13 ad: closing the ad at (1005, 107) (detected X)
+02:15:17 ad: closing the ad at (1004, 106) (detected X)
+02:15:19 ads mode: 33/1000000 watched
+02:15:21 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:15:24 ad: watching a free video #27 (refilling to 50 energy, bubble at (382, 756))
+02:17:03 ad: closing the ad at (1005, 107) (detected X)
+02:17:14 ad: closing the ad at (1005, 107) (detected X)
+02:17:17 ad: closing the ad at (1004, 106) (detected X)
+02:17:20 ads mode: 34/1000000 watched
+02:17:21 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:17:25 ad: watching a free video #28 (refilling to 50 energy, bubble at (382, 756))
+02:19:02 ad: closing the ad at (1005, 107) (detected X)
+02:19:05 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:19:14 ad: closing the ad at (1005, 107) (detected X)
+02:19:18 ad: closing the ad at (1004, 106) (detected X)
+02:19:20 ads mode: 35/1000000 watched
+02:19:22 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:19:25 ad: watching a free video #29 (refilling to 50 energy, bubble at (382, 756))
+02:21:04 ad: closing the ad at (1005, 107) (detected X)
+02:21:07 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:21:16 ad: closing the ad at (1005, 107) (detected X)
+02:21:19 ad: closing the ad at (1004, 106) (detected X)
+02:21:22 ads mode: 36/1000000 watched
+02:21:23 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:21:27 ad: watching a free video #30 (refilling to 50 energy, bubble at (382, 756))
+02:23:05 ad: closing the ad at (1005, 107) (detected X)
+02:23:07 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:23:17 ad: closing the ad at (1005, 107) (detected X)
+02:23:20 ad: closing the ad at (1004, 106) (detected X)
+02:23:23 ads mode: 37/1000000 watched
+02:23:25 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:23:28 ad: watching a free video #31 (refilling to 50 energy, bubble at (382, 756))
+02:25:11 ad: closing the ad at (1005, 107) (detected X)
+02:25:13 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:25:23 ad: closing the ad at (1004, 106) (detected X)
+02:25:25 ads mode: 38/1000000 watched
+02:25:27 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:25:30 ad: watching a free video #32 (refilling to 50 energy, bubble at (382, 756))
+02:27:13 ad: closing the ad at (1005, 107) (detected X)
+02:27:16 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:27:25 ad: closing the ad at (1004, 106) (detected X)
+02:27:27 ads mode: 39/1000000 watched
+02:27:29 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:27:32 ad: watching a free video #33 (refilling to 50 energy, bubble at (382, 756))
+02:29:11 ad: closing the ad at (1005, 107) (detected X)
+02:29:14 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:29:23 ad: closing the ad at (1005, 107) (detected X)
+02:29:26 ad: closing the ad at (1004, 106) (detected X)
+02:29:29 ads mode: 40/1000000 watched
+02:29:31 ad: matched lobby video bubble at (382, 756) (score 0.95, vid_tpl_b.png)
+02:29:34 ad: watching a free video #34 (refilling to 50 energy, bubble at (382, 756))
+02:31:13 ad: closing the ad at (1005, 107) (detected X)
+02:31:15 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:31:24 ad: closing the ad at (1005, 107) (detected X)
+02:31:28 ad: closing the ad at (1004, 106) (detected X)
+02:31:31 ads mode: 41/1000000 watched
+02:31:32 ad: matched lobby video bubble at (386, 756) (score 0.95, vid_tpl_b.png)
+02:31:35 ad: watching a free video #35 (refilling to 50 energy, bubble at (386, 756))
+02:33:15 ad: closing the ad at (1005, 107) (detected X)
+02:33:25 ad: closing the ad at (1004, 106) (detected X)
+02:33:27 ads mode: 42/1000000 watched
+02:33:29 ad: matched lobby video bubble at (534, 738) (score 0.86, vid_tpl_b.png)
+02:33:32 ad: watching a free video #36 (refilling to 50 energy, bubble at (534, 738))
+02:35:16 ad: closing the ad at (1005, 107) (detected X)
+02:35:26 ad: closing the ad at (1005, 107) (detected X)
+02:35:30 ad: closing the ad at (1004, 106) (detected X)
+02:35:33 ads mode: 43/1000000 watched
+02:35:34 ad: matched lobby video bubble at (534, 738) (score 0.86, vid_tpl_b.png)
+02:35:38 ad: watching a free video #37 (refilling to 50 energy, bubble at (534, 738))
+02:37:16 ad: closing the ad at (1005, 107) (detected X)
+02:37:26 ad: closing the ad at (1005, 107) (detected X)
+02:37:29 ad: closing the ad at (1004, 106) (detected X)
+02:37:32 ads mode: 44/1000000 watched
+02:37:34 ad: matched lobby video bubble at (534, 738) (score 0.86, vid_tpl_b.png)
+02:37:37 ad: watching a free video #38 (refilling to 50 energy, bubble at (534, 738))
+02:39:21 ad: closing the ad at (1005, 107) (detected X)
+02:39:24 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:39:33 ad: closing the ad at (1005, 107) (detected X)
+02:39:36 ad: closing the ad at (1004, 106) (detected X)
+02:39:39 ads mode: 45/1000000 watched
+02:39:41 ad: matched lobby video bubble at (534, 738) (score 0.86, vid_tpl_b.png)
+02:39:47 ad: closing the ad at (863, 196)
+02:39:50 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+02:39:51 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+02:40:00 ad: matched lobby video bubble at (534, 738) (score 0.86, vid_tpl_b.png)
+02:40:06 ad: matched lobby video bubble at (316, 738) (score 0.88, vid_tpl_b.png)
+02:40:13 ad: closing the ad at (863, 195)
+02:40:16 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+02:40:17 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+02:40:25 ad: matched lobby video bubble at (316, 738) (score 0.88, vid_tpl_b.png)
+02:40:32 ad: matched lobby video bubble at (316, 738) (score 0.88, vid_tpl_b.png)
+02:40:39 ad: closing the ad at (98, 98) (detected X)
+02:40:49 ad: closing the ad at (1008, 152) (detected X)
+02:40:53 ad: matched lobby video bubble at (382, 778) (score 0.94, vid_tpl_b.png)
+02:40:56 ad: watching a free video #39 (refilling to 50 energy, bubble at (382, 778))
+02:42:28 ad: closing the ad at (76, 234) (detected X)
+02:42:31 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+02:42:40 ad: closing the ad at (1005, 107) (detected X)
+02:42:43 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:42:52 ad: closing the ad at (1005, 107) (detected X)
+02:42:55 ad: closing the ad at (1004, 106) (detected X)
+02:42:58 ads mode: 46/1000000 watched
+02:43:00 ad: matched lobby video bubble at (382, 778) (score 0.94, vid_tpl_b.png)
+02:43:03 ad: watching a free video #40 (refilling to 50 energy, bubble at (382, 778))
+02:44:41 ad: closing the ad at (1005, 107) (detected X)
+02:44:44 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:44:53 ad: closing the ad at (1005, 107) (detected X)
+02:44:56 ad: closing the ad at (1004, 106) (detected X)
+02:44:59 ads mode: 47/1000000 watched
+02:45:01 ad: matched lobby video bubble at (382, 778) (score 0.94, vid_tpl_b.png)
+02:45:04 ad: watching a free video #41 (refilling to 50 energy, bubble at (382, 778))
+02:46:42 ad: closing the ad at (1005, 107) (detected X)
+02:46:45 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:46:54 ad: closing the ad at (1005, 107) (detected X)
+02:46:58 ad: closing the ad at (1004, 106) (detected X)
+02:47:01 ads mode: 48/1000000 watched
+02:47:02 ad: matched lobby video bubble at (386, 776) (score 0.95, vid_tpl_b.png)
+02:47:05 ad: watching a free video #42 (refilling to 50 energy, bubble at (386, 776))
+02:48:44 ad: closing the ad at (1005, 107) (detected X)
+02:48:47 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:48:56 ad: closing the ad at (1005, 107) (detected X)
+02:48:59 ad: closing the ad at (1004, 106) (detected X)
+02:49:02 ads mode: 49/1000000 watched
+02:49:04 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:49:07 ad: watching a free video #43 (refilling to 50 energy, bubble at (510, 730))
+02:50:45 ad: closing the ad at (1005, 107) (detected X)
+02:50:48 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:50:57 ad: closing the ad at (1005, 107) (detected X)
+02:51:00 ad: closing the ad at (1004, 106) (detected X)
+02:51:03 ads mode: 50/1000000 watched
+02:51:05 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:51:08 ad: watching a free video #44 (refilling to 50 energy, bubble at (510, 730))
+02:52:46 ad: closing the ad at (1005, 107) (detected X)
+02:52:49 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:52:58 ad: closing the ad at (1005, 107) (detected X)
+02:53:02 ad: closing the ad at (1004, 106) (detected X)
+02:53:04 ads mode: 51/1000000 watched
+02:53:06 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:53:09 ad: watching a free video #45 (refilling to 50 energy, bubble at (510, 730))
+02:54:47 ad: closing the ad at (1005, 107) (detected X)
+02:54:50 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:54:59 ad: closing the ad at (1005, 107) (detected X)
+02:55:03 ad: closing the ad at (1004, 106) (detected X)
+02:55:05 ads mode: 52/1000000 watched
+02:55:07 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:55:10 ad: watching a free video #46 (refilling to 50 energy, bubble at (510, 730))
+02:56:49 ad: closing the ad at (1005, 107) (detected X)
+02:56:51 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:57:00 ad: closing the ad at (1005, 107) (detected X)
+02:57:04 ad: closing the ad at (1004, 106) (detected X)
+02:57:07 ads mode: 53/1000000 watched
+02:57:08 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:57:12 ad: watching a free video #47 (refilling to 50 energy, bubble at (510, 730))
+02:58:51 ad: closing the ad at (1005, 107) (detected X)
+02:58:53 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+02:59:02 ad: closing the ad at (1005, 107) (detected X)
+02:59:06 ad: closing the ad at (1004, 106) (detected X)
+02:59:09 ads mode: 54/1000000 watched
+02:59:10 ad: matched lobby video bubble at (510, 730) (score 0.91, vid_tpl84.png)
+02:59:13 ad: watching a free video #48 (refilling to 50 energy, bubble at (510, 730))
+03:00:57 ad: closing the ad at (1005, 107) (detected X)
+03:00:59 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:01:08 ad: closing the ad at (1004, 106) (detected X)
+03:01:11 ads mode: 55/1000000 watched
+03:01:13 ad: matched lobby video bubble at (498, 730) (score 0.89, vid_tpl84.png)
+03:01:16 ad: watching a free video #49 (refilling to 50 energy, bubble at (498, 730))
+03:02:59 ad: closing the ad at (1005, 107) (detected X)
+03:03:01 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:03:10 ad: closing the ad at (1004, 106) (detected X)
+03:03:13 ads mode: 56/1000000 watched
+03:03:15 ad: matched lobby video bubble at (498, 730) (score 0.89, vid_tpl84.png)
+03:03:18 ad: watching a free video #50 (refilling to 50 energy, bubble at (498, 730))
+03:03:25 ad: closing the ad at (925, 216) (detected X)
+03:03:29 ad: closing the ad at (924, 217) (detected X)
+03:03:39 ad: closing the ad at (1009, 215) (detected X)
+03:03:42 ad: closing the ad at (989, 216) (detected X)
+03:03:45 ad: left the game (ungpop.android.mpop/com.samsungpop.phonelib.SSSmartActivity}), going back
+03:03:48 ad: closing the ad at (995, 216) (detected X)
+03:03:51 ad: left the game (ungpop.android.mpop/com.samsungpop.phonelib.SSSmartActivity}), going back
+03:03:54 ad: closing the ad at (989, 216) (detected X)
+03:04:04 ad: the X at (989, 216) did nothing 3 times - ignoring it, looking for another exit
+03:05:23 ad: unknown button at (989, 216) size 28x28: trying it (1)
+03:05:25 ad: learned a new exit button -> cand_030525.png
+03:05:25 ads mode: 57/1000000 watched
+03:05:30 ad: matched lobby video bubble at (324, 748) (score 0.92, vid_tpl_b.png)
+03:05:34 ad: watching a free video #51 (refilling to 50 energy, bubble at (324, 748))
+03:07:12 ad: closing the ad at (1005, 107) (detected X)
+03:07:22 ad: closing the ad at (1004, 106) (detected X)
+03:07:25 ads mode: 58/1000000 watched
+03:07:27 ad: matched lobby video bubble at (328, 748) (score 0.91, vid_tpl_b.png)
+03:07:30 ad: watching a free video #52 (refilling to 50 energy, bubble at (328, 748))
+03:09:14 ad: closing the ad at (1005, 107) (detected X)
+03:09:25 ad: closing the ad at (1004, 106) (detected X)
+03:09:27 ads mode: 59/1000000 watched
+03:09:29 ad: matched lobby video bubble at (396, 744) (score 0.91, vid_tpl_b.png)
+03:09:32 ad: watching a free video #53 (refilling to 50 energy, bubble at (396, 744))
+03:11:11 ad: closing the ad at (1005, 107) (detected X)
+03:11:14 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:11:29 ad: closing the ad at (1005, 107) (detected X)
+03:11:33 ad: closing the ad at (1004, 106) (detected X)
+03:11:35 ads mode: 60/1000000 watched
+03:11:37 ad: matched lobby video bubble at (384, 746) (score 0.91, vid_tpl_b.png)
+03:11:44 ad: closing the ad at (836, 196)
+03:11:47 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+03:12:02 ad: closing the ad at (1013, 207) (detected X)
+03:12:19 ad: closing the ad at (942, 195)
+03:12:28 ad: closing the ad at (984, 192) (detected X)
+03:12:32 ad: matched lobby video bubble at (384, 746) (score 0.91, vid_tpl_b.png)
+03:12:36 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:12:52 ad: closing the ad at (1008, 152) (detected X)
+03:12:57 ad: matched lobby video bubble at (384, 746) (score 0.91, vid_tpl_b.png)
+03:13:16 ad: closing the ad at (1008, 152) (detected X)
+03:13:21 ad: matched lobby video bubble at (384, 746) (score 0.91, vid_tpl_b.png)
+03:13:27 ad: closing the ad at (98, 98) (detected X)
+03:13:37 ad: closing the ad at (1008, 152) (detected X)
+03:13:42 ad: matched lobby video bubble at (384, 746) (score 0.91, vid_tpl_b.png)
+03:13:45 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:13:49 ad: closing the ad at (98, 98) (detected X)
+03:13:59 ad: closing the ad at (1008, 152) (detected X)
+03:14:03 ad: matched lobby video bubble at (390, 746) (score 0.92, vid_tpl_b.png)
+03:14:10 ad: closing the ad at (98, 98) (detected X)
+03:14:20 ad: closing the ad at (1008, 152) (detected X)
+03:14:24 ad: matched lobby video bubble at (390, 746) (score 0.92, vid_tpl_b.png)
+03:14:31 ad: closing the ad at (98, 98) (detected X)
+03:14:41 ad: closing the ad at (1008, 152) (detected X)
+03:14:45 ad: matched lobby video bubble at (390, 746) (score 0.92, vid_tpl_b.png)
+03:14:48 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+03:14:51 ad on screen without X: waiting / poking
+03:15:04 ad: closing the ad at (1008, 152) (detected X)
+03:15:20 multiplier steps available: [1, 2, 3, 5, 8, 10]
+03:15:25 multiplier -> x10
+03:15:25 roll #1 energy=190
+03:15:30 roll button dimmed for a while: tapping ROLL to go on
+03:15:33 roll #3 energy=180
+03:15:38 roll button dimmed for a while: tapping ROLL to go on
+03:15:40 roll #5 energy=170
+03:15:43 unknown screen: saved unknown_031543.png + its texts (shots/unknown_log.txt), tapping around
+03:15:53 sling screen detected: aim
+03:15:55 aim_live: samples=70 tgt=239 half=0.900 fit_err=26.2px t_off=0.600
+03:15:55 aim_live: poor fit -> release now
+03:16:02 button 'COLLECT' at 542,1807
+03:16:04 roll #6 energy=150
+03:16:06 roll #7 energy=140
+03:16:08 roll #8 energy=130
+03:16:14 roll button dimmed for a while: tapping ROLL to go on
+03:16:16 roll #10 energy=120
+03:16:18 roll #11 energy=120
+03:16:20 roll #12 energy=112
+03:16:23 roll #13 energy=105
+03:16:28 roll button dimmed for a while: tapping ROLL to go on
+03:16:30 roll #15 energy=98
+03:16:33 unknown screen: saved unknown_031633.png + its texts (shots/unknown_log.txt), tapping around
+03:16:39 attack: pick target pin (658, 722) (3 pins found)
+03:16:46 aim_live: samples=70 tgt=289 half=0.900 fit_err=28.0px t_off=0.600
+03:16:46 aim_live: poor fit -> release now
+03:16:52 button 'COLLECT' at 542,1807
+03:16:54 roll #16 energy=80
+03:16:56 roll #17 energy=70
+03:16:59 roll #18 energy=60
+03:17:01 roll #19 energy=50
+03:17:04 unknown screen: saved unknown_031704.png + its texts (shots/unknown_log.txt), tapping around
+03:17:06 roll #20 energy=140
+03:17:08 roll #21 energy=138
+03:17:11 roll #22 energy=135
+03:17:13 roll #23 energy=132
+03:17:15 roll #24 energy=110
+03:17:17 roll #25 energy=102
+03:17:19 roll #26 energy=95
+03:17:22 roll #27 energy=88
+03:17:24 roll #28 energy=80
+03:17:26 roll #29 energy=72
+03:17:28 roll #30 energy=65
+03:17:31 roll #31 energy=58
+03:17:33 roll #32 energy=40
+03:17:35 roll #33 energy=30
+03:17:37 roll #34 energy=20
+03:17:40 unknown screen: saved unknown_031740.png + its texts (shots/unknown_log.txt), tapping around
+03:17:43 steal tiles: tapping (152, 1703)
+03:17:46 steal minigame: tap STEAL
+03:17:49 steal tiles: tapping (429, 1704)
+03:17:53 result popup: tap to continue
+03:17:55 button 'COLLECT' at 541,1807
+03:17:57 roll #35 energy=20
+03:18:00 roll #36 energy=20
+03:18:02 roll #37 energy=20
+03:18:04 roll #38 energy=20
+03:18:06 roll #39 energy=20
+03:18:10 unknown screen: saved unknown_031810.png + its texts (shots/unknown_log.txt), tapping around
+03:18:14 roll #40 energy=80
+03:18:16 roll #41 energy=80
+03:18:18 roll #42 energy=80
+03:18:21 roll #43 energy=80
+03:18:23 roll #44 energy=40
+03:18:25 roll #45 energy=30
+03:18:31 roll button dimmed for a while: tapping ROLL to go on
+03:18:33 roll #47 energy=20
+03:18:35 energy used up after 47 rolls: back to watching lobby ads
+03:18:37 offer screen: closing without selecting tiles at (1001, 320)
+03:18:42 offer screen: closing without selecting tiles at (1014, 528)
+03:18:50 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:19:05 ad: bubble not visible; panning lobby camera to search
+03:19:25 ad: bubble not visible; panning lobby camera to search
+03:19:31 ad: matched lobby video bubble at (370, 754) (score 0.94, vid_tpl_b.png)
+03:19:50 ad: closing the ad at (1008, 152) (detected X)
+03:19:54 ad: matched lobby video bubble at (370, 754) (score 0.94, vid_tpl_b.png)
+03:19:58 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:20:26 ad: closing the ad at (984, 192) (detected X)
+03:20:30 ad: matched lobby video bubble at (370, 754) (score 0.94, vid_tpl_b.png)
+03:21:02 ad: closing the ad at (984, 192) (detected X)
+03:21:06 ad: matched lobby video bubble at (380, 756) (score 0.95, vid_tpl_b.png)
+03:21:09 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:21:13 ad: matched lobby video bubble at (496, 766) (score 0.97, vid_tpl_b.png)
+03:21:20 ad: closing the ad at (863, 195)
+03:21:23 ad: left the game (compose.common.webview.ui.activity.CommonNolWebViewActivity}), going back
+03:21:24 com.cultsotry.yanolja.nativeapp is still in front after BACK: closing the app
+03:21:32 ad: matched lobby video bubble at (496, 766) (score 0.97, vid_tpl_b.png)
+03:21:35 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+03:21:42 multiplier -> x10
+03:21:42 roll #1 energy=15
+03:21:46 offer screen: closing without selecting tiles at (1001, 320)
+03:21:49 X button at (963, 481): closing
+03:21:53 offer screen: closing without selecting tiles at (1014, 528)
+03:21:56 invite page: leaving without inviting anyone (exit at (978, 514))
+03:22:00 multiplier -> x5
+03:22:00 roll #2 energy=5
+03:22:03 energy used up after 2 rolls: back to watching lobby ads
+03:22:08 offer screen: closing without selecting tiles at (1001, 320)
+03:22:13 offer screen: closing without selecting tiles at (1014, 528)
+03:22:19 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:22:30 ad: bubble not visible; panning lobby camera to search
+03:22:50 ad: bubble not visible; panning lobby camera to search
+03:23:03 ad: matched lobby video bubble at (376, 754) (score 0.95, vid_tpl_b.png)
+03:23:17 ad: closing the ad at (942, 195)
+03:23:27 ad: closing the ad at (941, 195)
+03:23:30 ad: closing the ad at (835, 195)
+03:23:33 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+03:24:36 ad: matched lobby video bubble at (404, 784) (score 0.93, vid_tpl_b.png)
+03:24:39 ad: watching a free video #54 (refilling to 50 energy, bubble at (404, 784))
+03:25:13 ad: closing the ad at (979, 277) (detected X)
+03:25:16 ads mode: 61/1000000 watched
+03:25:17 ad: matched lobby video bubble at (404, 784) (score 0.93, vid_tpl_b.png)
+03:25:20 ad: watching a free video #55 (refilling to 50 energy, bubble at (404, 784))
+03:26:59 ad: closing the ad at (1005, 107) (detected X)
+03:27:01 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:27:10 ad: closing the ad at (1005, 107) (detected X)
+03:27:14 ad: closing the ad at (1004, 106) (detected X)
+03:27:17 ads mode: 62/1000000 watched
+03:27:18 ad: matched lobby video bubble at (404, 784) (score 0.93, vid_tpl_b.png)
+03:27:50 ad: closing the ad at (984, 192) (detected X)
+03:27:54 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:27:57 ad: watching a free video #56 (refilling to 50 energy, bubble at (234, 764))
+03:29:35 ad: closing the ad at (1005, 107) (detected X)
+03:29:38 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:29:47 ad: closing the ad at (1005, 107) (detected X)
+03:29:50 ad: closing the ad at (1004, 106) (detected X)
+03:29:53 ads mode: 63/1000000 watched
+03:29:55 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:29:58 ad: watching a free video #57 (refilling to 50 energy, bubble at (234, 764))
+03:31:39 ad: closing the ad at (1005, 107) (detected X)
+03:31:42 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:31:51 ad: closing the ad at (1005, 107) (detected X)
+03:31:54 ad: closing the ad at (1004, 106) (detected X)
+03:31:57 ads mode: 64/1000000 watched
+03:31:59 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:32:02 ad: watching a free video #58 (refilling to 50 energy, bubble at (234, 764))
+03:33:40 ad: closing the ad at (1005, 107) (detected X)
+03:33:43 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:33:52 ad: closing the ad at (1005, 107) (detected X)
+03:33:56 ad: closing the ad at (1004, 106) (detected X)
+03:33:58 ads mode: 65/1000000 watched
+03:34:00 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:34:03 ad: watching a free video #59 (refilling to 50 energy, bubble at (234, 764))
+03:35:46 ad: closing the ad at (1005, 107) (detected X)
+03:35:49 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:35:58 ad: closing the ad at (1004, 106) (detected X)
+03:36:01 ads mode: 66/1000000 watched
+03:36:02 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:36:06 ad: watching a free video #60 (refilling to 50 energy, bubble at (234, 764))
+03:37:49 ad: closing the ad at (1005, 107) (detected X)
+03:37:52 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:38:00 ad: closing the ad at (1004, 106) (detected X)
+03:38:03 ads mode: 67/1000000 watched
+03:38:05 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:38:08 ad: watching a free video #61 (refilling to 50 energy, bubble at (234, 764))
+03:39:47 ad: closing the ad at (1005, 107) (detected X)
+03:39:50 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:39:59 ad: closing the ad at (1005, 107) (detected X)
+03:40:02 ad: closing the ad at (1004, 106) (detected X)
+03:40:05 ads mode: 68/1000000 watched
+03:40:07 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:40:10 ad: watching a free video #62 (refilling to 50 energy, bubble at (234, 764))
+03:41:48 ad: closing the ad at (1005, 107) (detected X)
+03:41:51 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:42:00 ad: closing the ad at (1005, 107) (detected X)
+03:42:03 ad: closing the ad at (1004, 106) (detected X)
+03:42:06 ads mode: 69/1000000 watched
+03:42:07 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:42:11 ad: watching a free video #63 (refilling to 50 energy, bubble at (234, 764))
+03:43:51 ad: closing the ad at (1005, 107) (detected X)
+03:44:01 ad: closing the ad at (1004, 106) (detected X)
+03:44:04 ads mode: 70/1000000 watched
+03:44:05 ad: matched lobby video bubble at (234, 764) (score 0.80, vid_tpl_b.png)
+03:44:09 ad: watching a free video #64 (refilling to 50 energy, bubble at (234, 764))
+03:45:48 ad: closing the ad at (1005, 107) (detected X)
+03:45:50 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:45:59 ad: closing the ad at (1004, 106) (detected X)
+03:46:02 ads mode: 71/1000000 watched
+03:46:04 ad: matched lobby video bubble at (378, 744) (score 0.92, vid_tpl_b.png)
+03:46:07 ad: watching a free video #65 (refilling to 50 energy, bubble at (378, 744))
+03:47:45 ad: closing the ad at (1005, 107) (detected X)
+03:47:48 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:47:57 ad: closing the ad at (1004, 106) (detected X)
+03:48:00 ads mode: 72/1000000 watched
+03:48:01 ad: matched lobby video bubble at (380, 770) (score 0.96, vid_tpl_b.png)
+03:48:05 ad: watching a free video #66 (refilling to 50 energy, bubble at (380, 770))
+03:49:43 ad: closing the ad at (1005, 107) (detected X)
+03:49:46 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:49:55 ad: closing the ad at (1005, 107) (detected X)
+03:49:59 ad: closing the ad at (1004, 106) (detected X)
+03:50:02 ads mode: 73/1000000 watched
+03:50:03 ad: matched lobby video bubble at (380, 770) (score 0.96, vid_tpl_b.png)
+03:50:06 ad: watching a free video #67 (refilling to 50 energy, bubble at (380, 770))
+03:51:45 ad: closing the ad at (1005, 107) (detected X)
+03:51:48 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:51:57 ad: closing the ad at (1005, 107) (detected X)
+03:52:00 ad: closing the ad at (1004, 106) (detected X)
+03:52:03 ads mode: 74/1000000 watched
+03:52:05 ad: matched lobby video bubble at (380, 770) (score 0.96, vid_tpl_b.png)
+03:52:08 ad: watching a free video #68 (refilling to 50 energy, bubble at (380, 770))
+03:53:46 ad: closing the ad at (1005, 107) (detected X)
+03:53:49 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:53:58 ad: closing the ad at (1005, 107) (detected X)
+03:54:01 ad: closing the ad at (1004, 106) (detected X)
+03:54:04 ads mode: 75/1000000 watched
+03:54:06 ad: matched lobby video bubble at (380, 770) (score 0.96, vid_tpl_b.png)
+03:54:09 ad: watching a free video #69 (refilling to 50 energy, bubble at (380, 770))
+03:54:29 ad: closing the ad at (76, 244) (detected X)
+03:54:31 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+03:55:53 ad: closing the ad at (1005, 107) (detected X)
+03:55:56 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+03:56:05 ad: closing the ad at (1005, 107) (detected X)
+03:56:09 ad: closing the ad at (1004, 106) (detected X)
+03:56:11 ads mode: 76/1000000 watched
+03:56:13 ad: matched lobby video bubble at (380, 770) (score 0.96, vid_tpl_b.png)
+03:56:32 ad: closing the ad at (1008, 152) (detected X)
+03:56:37 ad: matched lobby video bubble at (424, 758) (score 0.95, vid_tpl_b.png)
+03:56:56 ad: closing the ad at (1008, 152) (detected X)
+03:57:00 ad: matched lobby video bubble at (424, 758) (score 0.95, vid_tpl_b.png)
+03:57:19 ad: closing the ad at (1008, 152) (detected X)
+03:57:24 ad: matched lobby video bubble at (424, 758) (score 0.95, vid_tpl_b.png)
+03:57:27 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+03:57:43 ad: closing the ad at (1008, 152) (detected X)
+03:57:47 ad: matched lobby video bubble at (424, 758) (score 0.95, vid_tpl_b.png)
+03:58:06 ad: closing the ad at (1008, 152) (detected X)
+03:58:11 ad: matched lobby video bubble at (424, 758) (score 0.95, vid_tpl_b.png)
+03:58:17 ad: closing the ad at (98, 98) (detected X)
+03:58:27 ad: closing the ad at (98, 98) (detected X)
+03:58:31 ad: closing the ad at (98, 98) (detected X)
+03:58:35 ad: closing the ad at (941, 196)
+03:58:45 ad: closing the ad at (941, 196)
+03:58:49 ad: closing the ad at (870, 194)
+03:58:51 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+03:59:21 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+03:59:35 multiplier steps available: [1, 2, 3, 5, 8, 10]
+03:59:40 multiplier -> x10
+03:59:40 roll #1 energy=120
+03:59:43 roll #2 energy=115
+03:59:46 unknown screen: saved unknown_035945.png + its texts (shots/unknown_log.txt), tapping around
+03:59:48 attack: pick target pin (532, 819) (0 pins found)
+04:00:04 attack: sling screen did not open, trying the next pin
+04:00:06 steal minigame: tap STEAL
+04:00:09 steal minigame: tap STEAL
+04:00:12 steal minigame: tap STEAL
+04:00:15 steal minigame: tap STEAL
+04:00:18 attack: pick target pin (532, 819) (0 pins found)
+04:00:35 attack: sling screen did not open, trying the next pin
+04:00:37 button 'COLLECT' at 542,1807
+04:00:39 roll #3 energy=110
+04:00:41 roll #4 energy=105
+04:00:43 roll #5 energy=100
+04:00:46 roll #6 energy=95
+04:00:51 roll button dimmed for a while: tapping ROLL to go on
+04:00:53 roll #8 energy=70
+04:00:55 roll #9 energy=60
+04:00:58 roll #10 energy=50
+04:01:02 unknown screen: saved unknown_040102.png + its texts (shots/unknown_log.txt), tapping around
+04:01:07 roll button dimmed for a while: tapping ROLL to go on
+04:01:09 roll #12 energy=30
+04:01:12 roll #13 energy=20
+04:01:14 roll #14 energy=20
+04:01:16 roll #15 energy=13
+04:01:22 roll button dimmed for a while: tapping ROLL to go on
+04:01:24 energy used up after 16 rolls: back to watching lobby ads
+04:01:26 ads-only mode: no free video available; staying in ad-only mode without rolling or building

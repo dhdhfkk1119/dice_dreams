@@ -756,15 +756,24 @@ BACK_ARROW = cvio.imread(os.path.join(BASE_DIR, "backarrow_mask.png"), 0)  # lig
 
 
 def find_back_arrow(img, thr=0.7):
-    """Centre of the light-blue back arrow in the top-left corner (event pages / mini-games), or None."""
+    """Centre of the light-blue back arrow in the top-left corner (event pages / mini-games), or None.
+    Event pages draw it at slightly different sizes (the cooking page's is ~1.2x the template), so a few scales
+    >= 0.9x are tried; smaller ones start matching the lobby's menu / coin pill."""
     if BACK_ARROW is None:
         return None
     m = cv2.inRange(cv2.cvtColor(img[90:400, 0:260], cv2.COLOR_BGR2HSV), (88, 40, 225), (110, 170, 255))
-    r = cv2.matchTemplate(m, BACK_ARROW, cv2.TM_CCOEFF_NORMED)
-    _, mx, _, loc = cv2.minMaxLoc(r)
-    if mx < thr:
+    best = None
+    for scale in (1.0, 0.9, 1.1, 1.2, 1.3):
+        t = BACK_ARROW if scale == 1.0 else cv2.resize(
+            BACK_ARROW, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+        if t.shape[0] >= m.shape[0] or t.shape[1] >= m.shape[1]:
+            continue
+        _, mx, _, loc = cv2.minMaxLoc(cv2.matchTemplate(m, t, cv2.TM_CCOEFF_NORMED))
+        if best is None or mx > best[0]:
+            best = (mx, loc[0] + t.shape[1] // 2, loc[1] + t.shape[0] // 2 + 90)
+    if best is None or best[0] < thr:
         return None
-    x, y = loc[0] + BACK_ARROW.shape[1] // 2, loc[1] + BACK_ARROW.shape[0] // 2 + 90
+    x, y = best[1], best[2]
     return (x, y) if x < 150 else None  # the lobby's light-blue coin pill (x~200) looks a bit like an arrow
 
 
@@ -1334,7 +1343,7 @@ def find_ad_close_box(img):
     if not landscape(img):
         for cx in (1005, 986, 75, 94):
             for cy in (107, 192):  # end cards put the X a bit lower (y~192) and further in (x~986)
-                if _box_x_ratio(img, cx, cy):
+                if _box_x_ratio(img, cx, cy) and _x_diag_shaped(img, cx, cy):  # empty dark corners are not an X
                     return cx, cy
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -1394,7 +1403,7 @@ def find_grey_circle_x(img):
     light page, top-right: neither a dark square nor a bright ring, so the shape tests above miss it."""
     x0, y0, x1, y1 = 880, 100, 1080, 340
     g = cv2.cvtColor(img[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY)
-    grey = ((g >= 118) & (g <= 148)).astype(np.float32)
+    grey = ((g >= 118) & (g <= 190)).astype(np.float32)
     white = (g > 235).astype(np.float32)
     k = np.zeros((101, 101), np.float32)
     cv2.circle(k, (50, 50), 36, 1.0, -1)
@@ -1567,15 +1576,40 @@ def _ride_ad(max_s=240):
             # checked before find_ad_close_box: its light toolbar (back arrow / X / title, dark-on-white)
             # can trip the dark-on-light branch of the generic corner-X scan below (e.g. a comment/flag
             # glyph in the toolbar), so this specific, purpose-built check must win the race.
+            gx = find_grey_circle_x(img)  # web-style end cards put their own X in a grey disc: that closes the ad
+            gk = ("disc", int(gx[0]) // 40, int(gx[1]) // 40) if gx else None
+            if gx and pressed.get(gk, 0) < 3:
+                pressed[gk] = pressed.get(gk, 0) + 1
+                log(f"ad: end card with its own X at {gx}: closing it")
+                tap(gx, 2.5)
+                continue
             log("ad: landing page opened (clicked through) - BACK to the ad")
             adb("shell", "input", "keyevent", "KEYCODE_BACK")
             time.sleep(1.5)
             continue
         close = find_ad_close_box(img)
         if close is not None:
-            log(f"ad: closing the ad at {close} (detected X)")
-            tap(close, 2.5)
-            continue
+            ck = ("x", int(close[0]) // 40, int(close[1]) // 40)
+            pressed[ck] = pressed.get(ck, 0) + 1
+            if pressed[ck] > 3:
+                # the same "X" was pressed three times and the ad is still here: it is not the exit (an info /
+                # shield / mute badge, or a spot that is empty). Skip it for the rest of this ad and look elsewhere.
+                if pressed[ck] == 4:
+                    log(f"ad: the X at {close} did nothing 3 times - ignoring it, looking for another exit")
+                    cv2.imwrite(os.path.join(OUT, f"ad_stuckX_{time.strftime('%H%M%S')}.png"), img)
+                close = None
+            else:
+                log(f"ad: closing the ad at {close} (detected X)")
+                tap(close, 2.5)
+                continue
+        if close is None and time.time() - t0 > 90 and time.time() - last_try > 6:
+            ba = find_back_arrow(img)
+            if ba and pressed.get(("back", ba[0] // 40, ba[1] // 40), 0) < 3:
+                pressed[("back", ba[0] // 40, ba[1] // 40)] = pressed.get(("back", ba[0] // 40, ba[1] // 40), 0) + 1
+                last_try = time.time()
+                log(f"ad: back arrow at {ba}: pressing it")
+                tap(ba, 2.0)
+                continue
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
             time.sleep(5)  # just re-read the screen for a real skip/X/known button; never a blind guess
