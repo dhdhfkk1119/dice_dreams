@@ -2,7 +2,8 @@
 
 Rule: coins >= cheapest building -> build; otherwise ROLL. Stops when energy is 0,
 after MAX_ROLLS, or when an unknown screen persists (screenshot saved for review).
-Usage: python bot.py [max_rolls] | ads [max_ads] | sale [max_rolls]
+Usage: python bot.py [max_rolls] [noupgrade] | ads [max_ads] | ads hammer | sale [max_rolls]
+`noupgrade`: roll and run TRAIL normally, but never open the hammer panel or spend coins on upgrades.
 """
 import os, re, subprocess, sys, time
 
@@ -809,6 +810,7 @@ def leave_other_app(f):
 
 
 STUCK_S = 150        # seconds without seeing the lobby (and no video playing) before the recovery ladder starts
+ADS_STUCK_S = 25     # ads-only mode has nothing to lose by backing off sooner: dismiss, don't play, get back to videos
 _last_ok = time.time()
 _recover_n = 0
 
@@ -890,8 +892,8 @@ TRAIL_MULT = (805, 1895)             # trail screen: the xN badge (each tap = ne
 TRAIL_TOKENS_BOX = (330, 2090, 780, 2200)
 TRAIL_MULT_BOX = (730, 1840, 900, 1960)
 TRAIL_CYCLE = [1, 5, 10, 15, 20, 30, 50, 100, 200, 400, 600, 800, 1200, 2000]   # measured: one tap = next entry
-TRAIL_AT = 200        # start spending when this many tokens have piled up ...
-TRAIL_BEST = 50       # spend at x50 when possible, then use the largest multiplier that fits the remainder
+TRAIL_AT = 500        # start spending when this many tokens have piled up ...
+TRAIL_BEST = 100      # spend at x100 when possible, then use the largest multiplier that fits the remainder
 TRAIL_STUCK_S = 120   # stop and leave if trail tokens do not change for two minutes
 _trail_check = 0.0
 PET_ICON = (115, 1650)
@@ -968,8 +970,8 @@ def trail_set_mult(target):
 
 
 def use_trail():
-    """Spend the trail tokens down to 0: x50 spins while at least 50 remain, then the biggest multiplier that fits
-    (30, 20, 15, 10, 5, 1) for the rest. Each spin: GO, wait, take whatever pops up (chest, TAP, COLLECT, X)."""
+    """Spend the trail tokens down to 0: x100 spins while at least 100 remain, then the biggest multiplier that
+    fits (50, 30, 20, 15, 10, 5, 1) for the rest. Each spin: GO, wait, take whatever pops up (chest, TAP, COLLECT, X)."""
     log("trail: opening the TRAIL event")
     if not trail_screen(shot()):
         tap(TRAIL_ICON, 3.5)
@@ -1275,6 +1277,27 @@ def _box_x_ratio(img, cx, cy):
     return white > 0.012 and dark > 0.6
 
 
+def _box_x_flat_color(img, cx, cy):
+    """Same as _box_x_ratio, but also accepts a flat-coloured (not dark) box, e.g. AppLovin's yellow X button.
+    Only ever paired with _x_diag_shaped: an ordinary game-UI button (menu icon, coin pill, ...) can easily sit
+    on a flat colour too, so without that shape check this alone would false-positive on normal gameplay."""
+    box = img[cy - 50:cy + 50, cx - 50:cx + 50]
+    if box.size == 0:
+        return False
+    is_white = box.min(axis=2) > 235
+    white = float(is_white.mean())
+    if white <= 0.012:
+        return False
+    dark = float((box.mean(axis=2) < 120).mean())
+    if dark > 0.6:
+        return True
+    bg = box[~is_white].reshape(-1, 3)
+    if bg.size == 0:
+        return False
+    med = np.median(bg, axis=0)
+    return float((np.abs(bg.astype(int) - med).sum(axis=1) < 40).mean()) > 0.5
+
+
 def _x_diag_shaped(img, cx, cy, r=15, x_min=235):
     """True white pixels concentrate on the two diagonals of a tight box around (cx, cy); a lookalike
     icon (Unity's privacy-shield badge, an info 'i' circle, ...) spreads its white pixels much more evenly,
@@ -1291,22 +1314,24 @@ def _x_diag_shaped(img, cx, cy, r=15, x_min=235):
 
 
 def find_ad_close_box(img):
-    """The ad's close X: a white X on a dark rounded square in the top-right or top-left corner.
-    Never the 'download' / 'Google Play' buttons (those open the store), and never a same-corner lookalike
-    icon such as Unity's persistent privacy-shield badge or an info 'i' circle: those are bright/dark
-    enough in that corner to pass the plain ratio check, so adlearn's precise corner-glyph candidates are
-    tried first, each confirmed to actually be X-shaped (not just bright-on-dark) before accepting. Only
-    when that finds nothing does the old coarse fixed-point scan - which cannot tell a lookalike from an
-    X - fall back to the plain ratio check alone, same as before."""
+    """The ad's close X: a white X on a dark (or flat-coloured, e.g. AppLovin's yellow box) rounded square in the
+    top-right or top-left corner. Never the 'download' / 'Google Play' buttons (those open the store), and never
+    a same-corner lookalike icon such as Unity's persistent privacy-shield badge or an info 'i' circle: those are
+    bright enough in that corner to pass the plain ratio check, so adlearn's precise corner-glyph candidates are
+    tried first - in both orientations, a rotated ad's X is exactly as real as a portrait one's - each confirmed
+    to actually be X-shaped (not just bright-on-a-box) before accepting. Only when that finds nothing does the
+    old coarse fixed-point scan - portrait-only, and it cannot tell a lookalike from an X - fall back to the
+    plain ratio check alone, same as before."""
     h, w = img.shape[:2]
     if not landscape(img):
         wb = find_white_box_x(img)
         if wb:
             return wb
-        for cx, cy, _, _ in adlearn.candidates(img):
-            if (cx < w * 0.3 or cx > w * 0.7) and cy < h * 0.2 and _box_x_ratio(img, cx, cy) \
-                    and _x_diag_shaped(img, cx, cy):
-                return cx, cy
+    for cx, cy, _, _ in adlearn.candidates(img):
+        if (cx < w * 0.3 or cx > w * 0.7) and cy < h * 0.2 and _x_diag_shaped(img, cx, cy) \
+                and _box_x_flat_color(img, cx, cy):
+            return cx, cy
+    if not landscape(img):
         for cx in (1005, 986, 75, 94):
             for cy in (107, 192):  # end cards put the X a bit lower (y~192) and further in (x~986)
                 if _box_x_ratio(img, cx, cy):
@@ -2299,18 +2324,22 @@ def run_sale(max_rolls):
     log("sale: finished hammer upgrades; stopping without normal rolls")
 
 
-def run_ads_only(max_ads, until_hammer=False, cycle=False):
-    """CLI `python bot.py ads N`: ignore rolling/building/minigames entirely (none of those can even trigger
-    without a ROLL tap) and just watch up to N free videos in a row, handling only what can actually stand
-    between one video and the next: Endless Rewards, a stray event page, an ad/app already in front, a popup,
-    or a leftover share sheet from a kingdom that just finished. With `until_hammer`, it keeps watching these
-    free videos until the lobby's golden-hammer discount appears. It never switches to rolling or building.
-    With `cycle` (the default for `ads`), once the lobby has offered no video for NO_AD_SWITCH_S it plays the game
-    until the energy is gone (play(stop_when_empty=True)) and then goes back to watching videos, forever: the
-    stored energy piles up from the videos and is spent in one go."""
+def run_ads_only(max_ads, until_hammer=False):
+    """CLI `python bot.py ads N`: watch up to N free videos in a row (lobby bubble, VIDEO/WATCH popups,
+    Endless Rewards), handling only what can stand between one video and the next: a stray event page, an
+    ad/app already in front, a popup, or a leftover share sheet. Anything else that isn't ad-watching - a
+    payment sheet, a random event, a rival-battle win/result screen, ... - is never played or engaged with,
+    only dismissed (X / BACK / a text button / a blind tap, same escalating ladder recover() uses in play())
+    so the lobby (and its video bubble) comes back. With `until_hammer`, it keeps watching these free videos
+    until the lobby's golden-hammer discount appears, and never rolls.
+    Otherwise, once the lobby has genuinely offered no video for NO_AD_SWITCH_S, it spends the piled-up dice
+    and energy by rolling (play(stop_when_empty=True, no_build=True)) - coins are never spent and the hammer
+    upgrade panel is never opened - then goes back to watching videos, forever: 1) watch every video the
+    lobby offers, 2) when none is left, roll with dice/energy only, 3) repeat."""
     watched = 0
     last_video = time.time()
     last_notice = time.time()
+    touch_ok()
     target = " until the golden hammer appears" if until_hammer else ""
     log(f"ads-only mode: watching up to {max_ads} free videos{target}")
     while watched < max_ads:
@@ -2332,6 +2361,8 @@ def run_ads_only(max_ads, until_hammer=False, cycle=False):
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
             ride_ad()
             continue
+        if roll_visible(img):  # lobby is up: nothing is stuck, reset the recovery timer
+            touch_ok()
         ba = find_back_arrow(img)
         if ba:  # a stray event page: leave it so the lobby (and its video bubble) comes back
             log(f"back arrow at {ba}: leaving this page")
@@ -2357,10 +2388,18 @@ def run_ads_only(max_ads, until_hammer=False, cycle=False):
                 last_notice = last_video = time.time()
                 log(f"ads mode: {watched}/{max_ads} watched")
                 continue
-        if cycle and roll_visible(img) and time.time() - last_video >= NO_AD_SWITCH_S:
-            log(f"ads mode: no lobby video for {NO_AD_SWITCH_S}s: playing until the energy is used up")
-            play(1_000_000, stop_when_empty=True)
-            last_video = time.time()  # videos get a fresh NO_AD_SWITCH_S window after each play phase
+        if not until_hammer and roll_visible(img) and time.time() - last_video >= NO_AD_SWITCH_S:
+            log(f"ads mode: no lobby video for {NO_AD_SWITCH_S}s: rolling with dice/energy only (no building)")
+            play(1_000_000, stop_when_empty=True, no_build=True)
+            last_video = time.time()  # videos get a fresh NO_AD_SWITCH_S window after each roll phase
+            continue
+        if not roll_visible(img) and time.time() - _last_ok > ADS_STUCK_S:
+            # not the lobby, not an ad, not any of the quick exits above for ADS_STUCK_S straight: a payment
+            # sheet, a rival-battle result, some other one-off popup. Never play it - dismiss it (X / a
+            # text button like the rival win screen's CONTINUE / BACK / a blind tap), same escalating ladder
+            # play() uses when stuck, just triggered much sooner since this mode has nothing to lose by
+            # backing off early: it only wants the lobby (and its video bubble) back.
+            recover(img, time.time() - _last_ok)
             continue
         if time.time() - last_notice >= 60:
             log("ads-only mode: no free video available; staying in ad-only mode without rolling or building")
@@ -2369,11 +2408,12 @@ def run_ads_only(max_ads, until_hammer=False, cycle=False):
     log(f"ads-only mode: done, watched {watched} ads")
 
 
-def play(max_rolls, sale_drain=False, stop_when_empty=False):
+def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
     """Normal play: build/roll/trail while there's energy or money, watch ads once both run out, repeat.
     `sale_drain` spends stored energy without building, TRAIL, or starting more ads, then returns when empty.
     `stop_when_empty` plays normally (builds, TRAIL...) but returns "energy_depleted" as soon as the energy is
-    gone instead of watching ads itself: the ads-first cycle in run_ads_only() takes over from there."""
+    gone instead of watching ads itself. `no_build` rolls (and still runs TRAIL) but never opens the hammer
+    upgrade panel or spends coins on kingdom upgrades - dice and energy are spent, money never is."""
     touch_ok()
     rolls = unknown = idle = pay_tries = back_tries = fight_n = pin_n = loading_n = 0
     since_check = 3  # first lobby loop already looks at the coins
@@ -2713,7 +2753,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False):
             # ads are watched only once energy and money are both spent (see the e < 1 branch below);
             # while there's still dice or coins to use, just keep rolling/building.
             # Priority: check affordable kingdom upgrades before optional TRAIL spins.
-            if not sale_drain and not free_mode:
+            if not sale_drain and not free_mode and not no_build:
                 hb = hammer_badge(img)
                 holding = False
                 if _hold_need:
@@ -2815,7 +2855,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False):
         if idle % 8 == 0 or _kingdom_changed:
             need = 0
             _kingdom_changed = False
-        if c is None or (c > 0 and c >= need):
+        if not no_build and (c is None or (c > 0 and c >= need)):
             n, min_price = build_all()
             need = min_price or 0
             if n:
@@ -2862,17 +2902,18 @@ def main():
         if ads_arg.lower() == "hammer":
             run_ads_only(10000, until_hammer=True)
         else:
-            # `ads` / `ads N` cycle between lobby videos and playing; `ads pure` never leaves the videos
-            pure = "pure" in [a.lower() for a in sys.argv[2:]]
             nums = [a for a in sys.argv[2:] if a.isdigit()]
-            run_ads_only(int(nums[0]) if nums else 1_000_000, cycle=not pure)
+            run_ads_only(int(nums[0]) if nums else 1_000_000)
         return
     if len(sys.argv) > 1 and sys.argv[1].lower() == "sale":
         run_sale(int(sys.argv[2]) if len(sys.argv) > 2 else 10000)
         return
     # no argument = play without a roll limit (launching `.ot.py` from PowerShell can drop the arguments, which used
     # to fall back to 20 rolls and end the run: the "done 20 rolls" stops seen in the log)
-    play(int(sys.argv[1]) if len(sys.argv) > 1 else 1_000_000)
+    # `noupgrade` anywhere in the args: roll/TRAIL normally but never open the hammer panel or spend coins.
+    no_build = "noupgrade" in [a.lower() for a in sys.argv[1:]]
+    nums = [a for a in sys.argv[1:] if a.isdigit()]
+    play(int(nums[0]) if nums else 1_000_000, no_build=no_build)
 
 
 if __name__ == "__main__":
