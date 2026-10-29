@@ -1499,6 +1499,35 @@ def try_video_event(img=None):
     return True
 
 
+def find_watch_button(img):
+    """A one-off bonus-video popup's WATCH button (VIDEO MANIA, MAGIC ROLL, ... - any popup video_craze_screen()
+    does not name) -> (x, y) or None. Same short-label rule as the multi-tier CRAZE WATCH buttons in
+    use_video_craze(), so a longer unrelated label is never matched."""
+    for b, t, _ in (ocr(img)[0] or []):
+        tt = t.strip().upper()
+        if tt.startswith("WATCH") and len(tt) <= 14:
+            return int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)
+    return None
+
+
+def use_watch_popup(img):
+    """A one-off bonus-video popup is up (VIDEO MANIA, MAGIC ROLL, ...): press its WATCH button rather than the
+    popup's close X - these pay out far more dice than a lobby video, so watching must win over just dismissing
+    it. Callers must try this before any generic close-the-popup-X fallback."""
+    global _last_ad
+    xy = find_watch_button(img)
+    if not xy:
+        return False
+    log(f"bonus video popup: WATCH button at {xy}")
+    tap(xy, 3.0)
+    if is_ad_focus(focus()):
+        _last_ad = time.time()
+        ride_ad()
+        return True
+    log("bonus video popup: WATCH did not open an ad")
+    return False
+
+
 def landing_page_bar(img):
     """A clicked-through ad landing page (opened in its own in-app browser) shows a light toolbar near the
     top (back arrow + X + title) - the opposite colours of the ad's own close buttons (dark glyphs on white,
@@ -2410,6 +2439,11 @@ def run_ads_only(max_ads, until_hammer=False):
         if paid_offer_screen(img):
             use_paid_offer()
             continue
+        if use_watch_popup(img):  # a one-off bonus-video popup (VIDEO MANIA, MAGIC ROLL, ...): watch it, not close it
+            watched += 1
+            last_notice = last_video = time.time()
+            log(f"ads mode: {watched}/{max_ads} watched (bonus popup)")
+            continue
         if find_close_x(img) is not None:  # a popup sits on top of the board
             tap(find_close_x(img), 1.2)
             continue
@@ -2639,6 +2673,8 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
                 else:
                     time.sleep(4)
                     continue
+            if use_watch_popup(img):  # a one-off bonus-video popup (VIDEO MANIA, MAGIC ROLL, ...): watch it, not close it
+                continue
             cx_ = find_close_x(img)
             if cx_ is not None:  # an X is there: always press the X (never the blue "?" at the top-left)
                 log(f"X button at {cx_}: closing")
@@ -2864,7 +2900,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
         if sale_drain:
             if not free_mode:
                 fed = feed_pet_if_available(img)
-                trailed = maybe_trail(img, min_tokens=1, force=True)
+                trailed = maybe_trail(img, force=True)
                 if fed or trailed:
                     refreshed = shot()
                     refreshed_energy = energy(refreshed)
@@ -2912,7 +2948,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
         if no_ad_since is not None and time.time() - no_ad_since >= NO_AD_REFILL_TIMEOUT_S:
             if feed_pet_if_available(img):
                 continue
-            if maybe_trail(img, min_tokens=1, force=True):
+            if maybe_trail(img, force=True):
                 continue
             log("no ads, energy, affordable builds, pet feed, or TRAIL left: waiting 5 min, then retrying")
             time.sleep(300)  # keep running: energy regenerates and the ad cooldown ends
