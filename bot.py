@@ -2499,6 +2499,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
     refilling = False
     no_ad_since = None
     no_ad_fallback = False
+    ad_peek = 0.0  # last time the lobby was checked for a free video while playing (stop_when_empty)
     e0 = energy(shot())
     if not sale_drain and not stop_when_empty and e0 is not None and e0 < 60:
         refilling = True
@@ -2810,6 +2811,11 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
             log(f"energy back to {e} (target {REFILL_TARGET}): back to playing")
         if refilling and e >= 1:
             e = 0   # keep retrying ads instead of spending partial energy before the refill target
+        if stop_when_empty and roll_visible(img) and time.time() - _last_ad > 20 and time.time() - ad_peek > 8:
+            ad_peek = time.time()
+            if find_close_x(img) is None and find_video_bubble(img) is not None:
+                log(f"a free lobby video is available again after {rolls} rolls: back to watching ads")
+                return "ad_available"
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
             no_ad_fallback = False
