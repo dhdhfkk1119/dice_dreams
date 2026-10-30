@@ -1307,14 +1307,15 @@ def _box_x_flat_color(img, cx, cy):
     return float((np.abs(bg.astype(int) - med).sum(axis=1) < 40).mean()) > 0.5
 
 
-def _x_diag_shaped(img, cx, cy, r=15, x_min=235):
-    """True white pixels concentrate on the two diagonals of a tight box around (cx, cy); a lookalike
-    icon (Unity's privacy-shield badge, an info 'i' circle, ...) spreads its white pixels much more evenly,
-    so its diagonal/cross ratio stays near 1 instead of clearing 2."""
+def _x_diag_shaped(img, cx, cy, r=15, x_min=235, dark=False):
+    """True white (or, with dark=True, dark - e.g. a grey-circle X icon on a light banner ad) pixels concentrate
+    on the two diagonals of a tight box around (cx, cy); a lookalike icon (Unity's privacy-shield badge, an info
+    'i' circle, ...) spreads them much more evenly, so its diagonal/cross ratio stays near 1 instead of clearing 2."""
     c = img[cy - r:cy + r, cx - r:cx + r]
     if c.size == 0:
         return False
-    m = cv2.resize((c.min(axis=2) > x_min).astype(np.uint8), (21, 21), interpolation=cv2.INTER_AREA)
+    mask = (c.max(axis=2) < x_min).astype(np.uint8) if dark else (c.min(axis=2) > x_min).astype(np.uint8)
+    m = cv2.resize(mask, (21, 21), interpolation=cv2.INTER_AREA)
     yy, xx = np.mgrid[0:21, 0:21]
     diag = (abs(xx - yy) <= 2) | (abs(xx + yy - 20) <= 2)
     cross = ((abs(xx - 10) <= 1) | (abs(yy - 10) <= 1)) & ~diag
@@ -1375,6 +1376,26 @@ def find_ad_close_box(img):
                         return x, y
     if not landscape(img):
         return find_grey_circle_x(img)
+    return None
+
+
+def find_anywhere_close(img):
+    """Last-resort, whole-screen search for a close/skip control every corner/top-band-only detector above
+    missed - e.g. a small banner ad's own X floating mid-page (not at a screen corner at all), as in a Jeju
+    hotel banner shown inside an otherwise empty ad slot. Checks the full frame for SKIP/CLOSE/닫기/건너뛰기
+    text or a bare '>'/'>>' glyph, then any X-shaped glyph on a dark-or-flat-coloured box anywhere on screen.
+    Slow (full-frame OCR + a full-frame glyph scan): only call this once every faster, targeted detector
+    (find_close_x, find_ad_close_box, find_skip_text, adlearn.find_known, ...) has already come back empty."""
+    for b, t, _ in (ocr(img)[0] or []):
+        tt = t.strip().upper()
+        if tt in ("X", ">>", ">", ">|", "SKIP", "CLOSE", "닫기", "건너뛰기", "광고 건너뛰기") or tt.startswith("SKIP"):
+            return int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)
+    for cx, cy, _, _ in adlearn.candidates_anywhere(img):  # bright X on a dark/flat-coloured box, same as find_ad_close_box
+        if _x_diag_shaped(img, cx, cy) and (_box_x_ratio(img, cx, cy) or _box_x_flat_color(img, cx, cy)):
+            return cx, cy
+    for cx, cy, _, _ in adlearn.candidates_anywhere(img, dark=True):  # dark X in a grey circle on a light banner
+        if _x_diag_shaped(img, cx, cy, x_min=110, dark=True):
+            return cx, cy
     return None
 
 
@@ -1591,7 +1612,7 @@ def _ride_ad(max_s=240):
             dx = adlearn.find_dialog_x(img)
             hit = adlearn.find_known(img)
             sk = find_skip_text(img)
-            xy = close or dx or ((hit[0], hit[1]) if hit else None) or sk
+            xy = close or dx or ((hit[0], hit[1]) if hit else None) or sk or find_anywhere_close(img)
             if xy and (close is not None or not adlearn.is_bad(img, xy[0], xy[1])):
                 source = " (X)" if close and xy == close else ""
                 source += " (SKIP)" if sk and xy == sk else ""
@@ -1650,7 +1671,7 @@ def _ride_ad(max_s=240):
             continue
         sk = find_skip_text(img)
         hit = None if sk else adlearn.find_known(img)
-        xy = sk or ((hit[0], hit[1]) if hit else find_ad_close_box(img))
+        xy = sk or ((hit[0], hit[1]) if hit else find_ad_close_box(img)) or find_anywhere_close(img)
         if xy and not sk and adlearn.is_bad(img, xy[0], xy[1]):  # mute / info / store openers look a bit like an X
             xy = None
         if xy and pressed.get((xy[0] // 50, xy[1] // 50), 0) >= 3:

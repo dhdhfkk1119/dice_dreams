@@ -124,6 +124,42 @@ def candidates(img, tried=()):
     return keep[:6]
 
 
+def candidates_anywhere(img, tried=(), cap=25, dark=False):
+    """Compact bright (or, with dark=True, dark - e.g. a grey-circle X icon on a light banner ad) glyphs anywhere
+    on screen, not just the top corners: for a close/skip control placed away from the usual corners, e.g. a
+    small banner ad's own X floating mid-page instead of at a screen corner. Same size/library filtering as
+    candidates(), just without its top-band-only, corner-only restriction, so it is slower and only meant as a
+    last resort once candidates() (and everything else) has come back empty."""
+    h, w = img.shape[:2]
+    if dark:
+        m = (img.max(axis=2) < 110).astype(np.uint8) * 255
+    else:
+        m = mask_of(img, 0, h, 190)
+    d = cv2.dilate(m, np.ones((9, 9), np.uint8))
+    n, _, stats, cent = cv2.connectedComponentsWithStats(d, connectivity=8)
+    out = []
+    for i in range(1, n):
+        x, y, bw, bh, a = stats[i]
+        bw, bh = bw - 8, bh - 8                      # undo the dilation
+        if not (14 <= bw <= 64 and 14 <= bh <= 64):
+            continue
+        raw = int((m[y:y + stats[i][3], x:x + stats[i][2]] > 0).sum())
+        if raw < 25:
+            continue
+        cx, cy = int(cent[i][0]), int(cent[i][1])
+        if any(abs(cx - tx) < 40 and abs(cy - ty) < 40 for tx, ty in tried):
+            continue
+        out.append((cx, cy, bw, bh))
+    # skip things already known to be useless (they opened the store), same as candidates()
+    keep = []
+    for cx, cy, bw, bh in out:
+        crop = _crop_mask(img, cx, cy, bw, bh)
+        if crop is not None and any(_same(crop, g) for _, g in _bad):
+            continue
+        keep.append((cx, cy, bw, bh))
+    return keep[:cap]
+
+
 def _crop_mask(img, cx, cy, w, h):
     x0, x1 = max(0, cx - w // 2 - 3), min(img.shape[1], cx + w // 2 + 4)
     y0, y1 = max(0, cy - h // 2 - 3), min(img.shape[0], cy + h // 2 + 4)
