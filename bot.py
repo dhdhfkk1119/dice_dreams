@@ -1375,8 +1375,32 @@ def find_ad_close_box(img):
                     if float((diag1 < 160).mean()) > 0.4 and float((diag2 < 160).mean()) > 0.4:
                         return x, y
     if not landscape(img):
-        return find_grey_circle_x(img)
+        return find_grey_circle_x(img) or find_bare_white_x(img)
     return None
+
+
+def find_bare_white_x(img):
+    """A small white X drawn straight on the ad's artwork (no box or disc behind it, e.g. Unity playable end cards
+    with a light picture): only its diagonal-vs-cross shape separates it from the picture. Top corners only."""
+    h, w = img.shape[:2]
+    white = (img.min(axis=2) > 240).astype(np.float32)
+    frac = cv2.boxFilter(white, -1, (31, 31), borderType=cv2.BORDER_CONSTANT)
+    pts = []
+    for y0, y1, x0, x1 in ((90, 420, 30, 330), (90, 420, w - 330, w - 30)):
+        ys, xs = np.nonzero((frac[y0:y1, x0:x1] > 0.03) & (frac[y0:y1, x0:x1] < 0.30))
+        for y, x in zip(ys[::3], xs[::3]):
+            if _x_diag_shaped(img, x0 + int(x), y0 + int(y), r=15, x_min=240):
+                pts.append((x0 + int(x), y0 + int(y)))
+        if pts:
+            break
+    if not pts:
+        return None
+    cx, cy = int(np.mean([p[0] for p in pts])), int(np.mean([p[1] for p in pts]))
+    win = white[max(cy - 25, 0):cy + 26, max(cx - 25, 0):cx + 26]
+    ys, xs = np.nonzero(win)
+    if len(xs) < 20:
+        return None
+    return max(cx - 25, 0) + int(xs.mean()), max(cy - 25, 0) + int(ys.mean())
 
 
 def find_anywhere_close(img):
@@ -1420,24 +1444,29 @@ def find_white_box_x(img):
 
 
 def find_grey_circle_x(img):
-    """Web-style end cards (Pangle/TikTok reward ads) draw the X as a translucent grey disc with a white X on a
-    light page, top-right: neither a dark square nor a bright ring, so the shape tests above miss it."""
+    """Web-style end cards (Pangle/TikTok/AppLovin reward ads) draw the X as a translucent grey disc with a white X
+    on a light page, top-right: neither a dark square nor a bright ring, so the shape tests above miss it.
+    The disc's rim must be solid grey all the way round (a patch of grey artwork next to the white page is not a
+    disc) and the white X sits only in its middle."""
     x0, y0, x1, y1 = 880, 100, 1080, 340
     g = cv2.cvtColor(img[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY)
     grey = ((g >= 118) & (g <= 190)).astype(np.float32)
     white = (g > 235).astype(np.float32)
-    k = np.zeros((101, 101), np.float32)
-    cv2.circle(k, (50, 50), 36, 1.0, -1)
-    k_in = k / k.sum()
-    ring = np.zeros_like(k)
-    cv2.circle(ring, (50, 50), 46, 1.0, -1)
-    cv2.circle(ring, (50, 50), 41, 0.0, -1)
+    yy, xx = np.mgrid[-50:51, -50:51]
+    d2 = xx * xx + yy * yy
+    inner = (d2 <= 17 * 17).astype(np.float32)
+    rim = ((d2 > 22 * 22) & (d2 <= 36 * 36)).astype(np.float32)
+    ring = ((d2 >= 41 * 41) & (d2 <= 46 * 46)).astype(np.float32)
+    inner /= inner.sum()
+    rim /= rim.sum()
     ring /= ring.sum()
-    disc = cv2.filter2D(grey + white, -1, k_in, borderType=cv2.BORDER_CONSTANT)   # disc filled by grey or white X
-    wh = cv2.filter2D(white, -1, k_in, borderType=cv2.BORDER_CONSTANT)
-    outside = cv2.filter2D(grey, -1, ring, borderType=cv2.BORDER_CONSTANT)        # nothing grey just outside it
-    score = disc - outside
-    score[(wh < 0.025) | (wh > 0.35) | (disc < 0.78)] = -1
+    f = lambda m, k: cv2.filter2D(m, -1, k, borderType=cv2.BORDER_CONSTANT)
+    rim_grey = f(grey, rim)                  # solid grey all round the disc
+    mid = f(grey + white, inner)             # centre: grey with the white X strokes
+    mid_white = f(white, inner)
+    outside = f(grey, ring)                  # nothing grey just outside it
+    score = np.minimum(rim_grey, mid) - outside
+    score[(mid_white < 0.04) | (mid_white > 0.5) | (rim_grey < 0.9) | (mid < 0.93)] = -1
     _, best, _, loc = cv2.minMaxLoc(score)
     if best < 0.45:
         return None
