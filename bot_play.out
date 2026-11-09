@@ -1,0 +1,158 @@
+06:43:55 steal tiles: tapping (152, 1706)
+06:43:59 steal minigame: tap STEAL
+06:44:02 steal tiles: tapping (429, 1696)
+06:44:06 steal minigame: tap STEAL
+06:44:09 steal tiles: tapping (789, 1705)
+06:44:13 steal minigame: tap STEAL
+06:44:16 steal tiles: tapping (679, 1714)
+06:44:20 steal minigame: tap STEAL
+06:44:30 offer screen: closing without selecting tiles at (1001, 320)
+06:44:33 bonus video popup: WATCH button at (587, 1909)
+06:46:21 ad: closing the ad at (1005, 107) (detected X)
+06:46:24 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+06:46:34 ad: closing the ad at (1005, 107) (detected X)
+06:46:37 ad: closing the ad at (1004, 106) (detected X)
+06:46:42 tap to continue
+06:46:45 unknown screen: saved unknown_064645.png + its texts (shots/unknown_log.txt), tapping around
+06:46:48 X button at (1014, 528): closing
+06:46:52 invite page: leaving without inviting anyone (exit at (978, 515))
+06:46:56 trail tokens 580 >= 500: spending them
+06:46:56 trail: opening the TRAIL event
+06:47:15 trail: the page did not open
+06:47:18 multiplier x50 unreachable, rolling at x5
+06:47:18 roll #1 energy=65
+06:47:21 unknown screen: saved unknown_064721.png + its texts (shots/unknown_log.txt), tapping around
+06:48:15 multiplier steps available: [1, 2, 3, 5, 8, 10, 25, 50]
+06:48:22 multiplier -> x50
+06:48:22 roll #2 energy=65
+06:48:24 roll #3 energy=65
+06:48:28 offer screen: closing without selecting tiles at (1001, 320)
+06:48:32 X button at (1014, 528): closing
+06:48:36 invite page: leaving without inviting anyone (exit at (978, 514))
+06:48:41 multiplier -> x10
+06:48:41 roll #4 energy=15
+06:48:45 multiplier x5 unreachable, rolling at x3
+06:48:45 roll #5 energy=5
+06:48:47 ROLL keeps opening an offer popup: refreshing the visible energy count
+06:48:49 offer screen: closing without selecting tiles at (1001, 320)
+06:48:53 X button at (1014, 528): closing
+06:48:56 invite page: leaving without inviting anyone (exit at (978, 514))
+06:48:59 trail tokens 579 >= 500: spending them
+06:48:59 trail: opening the TRAIL event
+06:49:19 trail: the page did not open
+06:49:21 multiplier x5 unreachable, rolling at x5
+06:49:21 roll #6 energy=5
+06:49:23 sling screen detected: aim
+06:49:26 aim_live: not enough samples (70 face, 0 target) -> release now
+06:49:28 aim: sling still on screen, firing with a swipe
+06:49:31 aim: sling still on screen, firing with a swipe
+06:49:35 sling screen detected: aim
+06:49:38 aim_live: not enough samples (70 face, 0 target) -> release now
+06:49:40 aim: sling still on screen, firing with a swipe
+06:49:42 aim: sling still on screen, firing with a swipe
+06:49:47 sling screen detected: aim
+06:49:49 aim_live: not enough samples (70 face, 0 target) -> release now
+06:49:51 aim: sling still on screen, firing with a swipe
+06:49:54 aim: sling still on screen, firing with a swipe
+06:49:58 sling screen detected: aim
+06:50:01 aim_live: not enough samples (70 face, 0 target) -> release now
+06:50:03 aim: sling still on screen, firing with a swipe
+06:50:06 aim: sling still on screen, firing with a swipe
+06:50:10 sling screen detected: aim
+06:50:13 aim_live: not enough samples (70 face, 0 target) -> release now
+06:50:15 aim: sling still on screen, firing with a swipe
+06:50:18 aim: sling still on screen, firing with a swipe
+06:50:22 sling screen detected: aim
+06:50:25 aim_live: not enough samples (70 face, 0 target) -> release now
+06:50:27 aim: sling still on screen, firing with a swipe
+06:50:30 aim: sling still on screen, firing with a swipe
+06:50:34 sling screen detected: aim
+06:50:37 aim_live: not enough samples (70 face, 0 target) -> release now
+06:50:39 aim: sling still on screen, firing with a swipe
+06:50:41 aim: sling still on screen, firing with a swipe
+06:50:46 sling screen detected: aim
+06:50:48 aim_live: not enough samples (70 face, 0 target) -> release now
+06:50:50 aim: sling still on screen, firing with a swipe
+06:50:53 aim: sling still on screen, firing with a swipe
+06:50:57 sling screen detected: aim
+06:51:00 aim_live: not enough samples (70 face, 0 target) -> release now
+06:51:02 aim: sling still on screen, firing with a swipe
+06:51:05 aim: sling still on screen, firing with a swipe
+06:51:09 sling screen detected: aim
+06:51:12 aim_live: not enough samples (70 face, 0 target) -> release now
+06:51:14 aim: sling still on screen, firing with a swipe
+06:51:17 aim: sling still on screen, firing with a swipe
+06:51:21 sling screen detected: aim
+06:51:24 aim_live: not enough samples (70 face, 0 target) -> release now
+06:51:26 aim: sling still on screen, firing with a swipe
+06:51:29 aim: sling still on screen, firing with a swipe
+06:51:33 stuck for 154s without the lobby: recovery step 1
+06:51:34 recovery: trying the corner glyph at (1021, 99)
+06:51:36 stuck for 158s without the lobby: recovery step 2
+06:51:40 stuck for 161s without the lobby: recovery step 3
+06:51:41 recovery: trying the corner glyph at (337, 57)
+06:51:43 stuck for 165s without the lobby: recovery step 4
+06:51:46 stuck for 168s without the lobby: recovery step 5
+06:51:47 recovery: trying the corner glyph at (341, 383)
+06:51:50 stuck for 171s without the lobby: recovery step 6
+06:51:51 recovery: BACK
+06:51:53 stuck for 175s without the lobby: recovery step 7
+06:51:54 recovery: trying the corner glyph at (273, 365)
+06:51:57 trail tokens 578 >= 500: spending them
+06:51:57 trail: opening the TRAIL event
+06:52:17 trail: the page did not open
+06:52:19 multiplier x5 unreachable, rolling at x5
+06:52:19 roll #7 energy=5
+06:52:22 unknown screen: saved unknown_065222.png + its texts (shots/unknown_log.txt), tapping around
+06:53:03 multiplier -> x5
+06:53:03 roll #8 energy=5
+06:53:09 offer screen: closing without selecting tiles at (1001, 320)
+06:53:13 bonus video popup: WATCH button at (587, 1909)
+06:55:00 ad: closing the ad at (1005, 107) (detected X)
+06:55:03 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
+06:55:06 ad: closing the ad at (362, 646)
+06:55:09 ad: left the game (nsky.transparentmainactivity.TransparentMainActivityPrivate}), going back
+06:55:12 ad: closing the ad at (1004, 106) (detected X)
+06:55:16 tap to continue
+06:55:19 unknown screen: saved unknown_065519.png + its texts (shots/unknown_log.txt), tapping around
+06:55:22 X button at (1014, 528): closing
+06:55:26 invite page: leaving without inviting anyone (exit at (975, 519))
+06:55:29 trail tokens 577 >= 500: spending them
+06:55:29 trail: opening the TRAIL event
+06:55:48 trail: the page did not open
+06:55:50 multiplier x50 unreachable, rolling at x5
+06:55:50 roll #9 energy=70
+06:55:53 event/sub screen: back arrow (top-left)
+06:55:58 unknown screen: saved unknown_065558.png + its texts (shots/unknown_log.txt), tapping around
+06:56:42 multiplier -> x50
+06:56:42 roll #10 energy=70
+06:56:45 roll #11 energy=65
+06:56:47 ROLL keeps opening an offer popup: refreshing the visible energy count
+06:56:48 offer screen: closing without selecting tiles at (1001, 320)
+06:56:52 X button at (1014, 528): closing
+06:56:56 invite page: leaving without inviting anyone (exit at (978, 514))
+06:57:01 multiplier -> x10
+06:57:01 roll #12 energy=20
+06:57:03 roll #13 energy=15
+06:57:09 unknown screen: saved unknown_065709.png + its texts (shots/unknown_log.txt), tapping around
+06:57:21 sling screen detected: aim
+06:57:24 aim_live: samples=70 tgt=355 half=0.900 fit_err=23.6px t_off=0.600
+06:57:25 aim_live: released at 1.944 (cross 2.544); froze at x=409 (target 355, +53 px) at 2.140; timing error +0.135 s
+06:57:31 button 'COLLECT' at 542,1807
+06:57:34 trail tokens 576 >= 500: spending them
+06:57:34 trail: opening the TRAIL event
+06:57:55 trail: the page did not open
+06:57:57 multiplier -> x10
+06:57:57 roll #14 energy=10
+06:58:04 offer screen: closing without selecting tiles at (1001, 320)
+06:58:07 X button at (1014, 528): closing
+06:58:11 invite page: leaving without inviting anyone (exit at (978, 514))
+06:58:16 multiplier -> x10
+06:58:16 roll #15 energy=10
+06:58:21 ROLL keeps opening an offer popup: refreshing the visible energy count
+06:58:23 offer screen: closing without selecting tiles at (1001, 320)
+06:58:26 X button at (1014, 528): closing
+06:58:30 invite page: leaving without inviting anyone (exit at (978, 514))
+06:58:34 X button at (920, 661): closing
+06:58:40 energy used up after 15 rolls: back to watching lobby ads
+RESULT energy_depleted

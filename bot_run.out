@@ -1,138 +1,681 @@
-20:35:12 ads-only mode: watching up to 1000000 free videos
-20:35:14 ad: closing the ad at (139, 250) (detected X)
-20:37:16 ad: unknown button at (990, 146) size 38x38: trying it (1)
-20:37:18 ad: learned a new exit button -> cand_203718.png
-20:37:21 ads-only mode: no free video available; staying in ad-only mode without rolling or building
-20:37:26 ad: matched lobby video bubble at (482, 810) (score 0.96, vid_tpl_b.png)
-20:37:29 ad: watching a free video #1 (refilling to 50 energy, bubble at (482, 810))
-20:37:57 ad: left the game (com.google.android.finsky.transparentmainactivity.HsdpAlias}), going back
-20:37:59 ad: closing the ad at (248, 137) (detected X)
-20:38:03 ad: closing the ad at (248, 137) (detected X)
-20:38:06 ad: closing the ad at (248, 137) (detected X)
-20:38:10 ad: the X at (248, 137) did nothing 3 times - ignoring it, looking for another exit
-20:39:31 ad: unknown button at (91, 163) size 31x26: trying it (1)
-20:39:35 ad: no exit button after 2 min, tapping the ad once
-20:39:38 ad: unknown button at (88, 146) size 38x38: trying it (1)
-20:39:39 ad: learned a new exit button -> cand_203939.png
-20:39:39 ads mode: 1/1000000 watched
-20:39:46 ad: matched lobby video bubble at (526, 792) (score 0.95, vid_tpl84.png)
-20:39:49 ad: watching a free video #2 (refilling to 50 energy, bubble at (526, 792))
-20:41:59 ad: no exit button after 2 min, tapping the ad once
-20:42:00 ad: left the game (oid.chrome/org.chromium.chrome.browser.ChromeTabbedActivity}), going back
-20:42:05 ad: closing the ad at (85, 787)
-20:42:07 ads mode: 2/1000000 watched
-20:42:10 ad: matched lobby video bubble at (484, 796) (score 0.91, vid_tpl84.png)
-20:42:13 ad: watching a free video #3 (refilling to 50 energy, bubble at (484, 796))
-20:42:14 ad: closing the ad at (935, 392) (detected X)
-20:42:17 ad: left the game (ry.yanolja.nativeapp/com.nol.ui.feature.intro.IntroActivity}), going back
-20:42:20 ad: closing the ad at (936, 392) (detected X)
-20:42:22 ad: left the game (otry.yanolja.nativeapp/com.nol.ui.feature.main.MainActivity}), going back
-20:42:26 ad: closing the ad at (85, 157)
-20:42:29 ads mode: 3/1000000 watched
-20:42:35 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:42:43 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:42:50 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:42:58 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:05 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:13 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:21 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:28 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:32 ads-only mode: no free video available; staying in ad-only mode without rolling or building
-20:43:36 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:44 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:43:52 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:00 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:08 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:16 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:23 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:31 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:34 ads-only mode: no free video available; staying in ad-only mode without rolling or building
-20:44:39 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:47 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:44:54 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:02 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:10 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:17 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:25 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:32 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:36 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
-20:45:38 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:38 a free lobby video is available again after 0 rolls: back to watching ads
-20:45:41 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:44 ads-only mode: no free video available; staying in ad-only mode without rolling or building
-20:45:48 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:45:56 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:03 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:11 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:18 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:26 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:34 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:41 ad: matched lobby video bubble at (484, 800) (score 0.94, vid_tpl_b.png)
-20:46:44 ads-only mode: no free video available; staying in ad-only mode without rolling or building
-20:46:54 no screenshot: phone/adb disconnected? waiting...
-20:47:24 no screenshot: phone/adb disconnected? waiting...
-20:47:54 no screenshot: phone/adb disconnected? waiting...
-20:48:26 no screenshot: phone/adb disconnected? waiting...
-20:48:57 no screenshot: phone/adb disconnected? waiting...
-20:49:29 no screenshot: phone/adb disconnected? waiting...
-20:49:59 no screenshot: phone/adb disconnected? waiting...
-20:50:32 no screenshot: phone/adb disconnected? waiting...
-20:51:02 no screenshot: phone/adb disconnected? waiting...
-20:51:34 no screenshot: phone/adb disconnected? waiting...
-20:52:04 no screenshot: phone/adb disconnected? waiting...
-20:52:37 no screenshot: phone/adb disconnected? waiting...
-20:53:07 no screenshot: phone/adb disconnected? waiting...
-20:53:39 no screenshot: phone/adb disconnected? waiting...
-20:54:10 no screenshot: phone/adb disconnected? waiting...
-20:54:42 no screenshot: phone/adb disconnected? waiting...
-20:55:12 no screenshot: phone/adb disconnected? waiting...
-20:55:44 no screenshot: phone/adb disconnected? waiting...
-20:56:15 no screenshot: phone/adb disconnected? waiting...
-20:56:47 no screenshot: phone/adb disconnected? waiting...
-20:57:17 no screenshot: phone/adb disconnected? waiting...
-20:57:49 no screenshot: phone/adb disconnected? waiting...
-20:58:20 no screenshot: phone/adb disconnected? waiting...
-20:58:52 no screenshot: phone/adb disconnected? waiting...
-20:59:22 no screenshot: phone/adb disconnected? waiting...
-20:59:55 no screenshot: phone/adb disconnected? waiting...
-21:00:25 no screenshot: phone/adb disconnected? waiting...
-21:00:57 no screenshot: phone/adb disconnected? waiting...
-21:01:27 no screenshot: phone/adb disconnected? waiting...
-21:02:00 no screenshot: phone/adb disconnected? waiting...
-21:02:30 no screenshot: phone/adb disconnected? waiting...
-21:03:02 no screenshot: phone/adb disconnected? waiting...
-21:03:32 no screenshot: phone/adb disconnected? waiting...
-21:04:05 no screenshot: phone/adb disconnected? waiting...
-21:04:35 no screenshot: phone/adb disconnected? waiting...
-21:05:07 no screenshot: phone/adb disconnected? waiting...
-21:05:38 no screenshot: phone/adb disconnected? waiting...
-21:06:10 no screenshot: phone/adb disconnected? waiting...
-21:06:40 no screenshot: phone/adb disconnected? waiting...
-21:07:12 no screenshot: phone/adb disconnected? waiting...
-21:07:43 no screenshot: phone/adb disconnected? waiting...
-21:08:15 no screenshot: phone/adb disconnected? waiting...
-21:08:45 no screenshot: phone/adb disconnected? waiting...
-21:09:17 no screenshot: phone/adb disconnected? waiting...
-21:09:48 no screenshot: phone/adb disconnected? waiting...
-21:10:20 no screenshot: phone/adb disconnected? waiting...
-21:10:50 no screenshot: phone/adb disconnected? waiting...
-21:11:23 no screenshot: phone/adb disconnected? waiting...
-21:11:53 no screenshot: phone/adb disconnected? waiting...
-21:12:25 no screenshot: phone/adb disconnected? waiting...
-21:12:55 no screenshot: phone/adb disconnected? waiting...
-21:13:28 no screenshot: phone/adb disconnected? waiting...
-21:13:58 no screenshot: phone/adb disconnected? waiting...
-21:14:30 no screenshot: phone/adb disconnected? waiting...
-21:15:00 no screenshot: phone/adb disconnected? waiting...
-21:15:33 no screenshot: phone/adb disconnected? waiting...
-21:16:03 no screenshot: phone/adb disconnected? waiting...
-21:16:35 no screenshot: phone/adb disconnected? waiting...
-21:17:05 no screenshot: phone/adb disconnected? waiting...
-21:17:38 no screenshot: phone/adb disconnected? waiting...
-21:18:08 no screenshot: phone/adb disconnected? waiting...
-21:18:40 no screenshot: phone/adb disconnected? waiting...
-21:19:11 no screenshot: phone/adb disconnected? waiting...
-21:19:43 no screenshot: phone/adb disconnected? waiting...
-21:20:13 no screenshot: phone/adb disconnected? waiting...
-21:20:45 no screenshot: phone/adb disconnected? waiting...
-21:21:16 no screenshot: phone/adb disconnected? waiting...
+09:32:09 ads-only mode: watching up to 1000000 free videos
+09:32:16 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:32:27 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:32:37 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:32:48 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:32:58 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:33:08 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:33:10 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:33:19 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:33:29 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:33:39 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:33:50 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:34:00 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:34:10 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:34:12 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:34:21 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:34:31 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:34:41 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:34:51 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:35:02 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:35:12 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:35:13 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:35:22 energy used up after 0 rolls: back to watching lobby ads
+09:35:24 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:35:29 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:35:39 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:35:49 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:35:59 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:36:09 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:36:20 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:36:26 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:36:30 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:36:40 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:36:50 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:37:01 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:37:11 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:37:21 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:37:27 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:37:32 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:37:42 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:37:52 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:38:02 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:38:12 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:38:22 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:38:24 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:38:33 energy used up after 0 rolls: back to watching lobby ads
+09:38:35 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:38:39 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:38:49 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:38:59 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:39:10 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:39:20 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:39:30 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:39:36 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:39:40 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:39:50 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:40:00 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:40:11 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:40:21 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:40:31 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:40:36 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:40:41 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:40:51 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:41:01 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:41:11 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:41:22 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:41:32 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:41:34 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:41:42 energy used up after 0 rolls: back to watching lobby ads
+09:41:44 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:41:49 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:41:59 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:42:09 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:42:19 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:42:29 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:42:39 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:42:45 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:42:50 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:43:00 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:43:10 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:43:20 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:43:30 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:43:40 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:43:46 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:43:50 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:44:01 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:44:11 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:44:21 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:44:31 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:44:41 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:44:43 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:44:51 energy used up after 0 rolls: back to watching lobby ads
+09:44:53 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:44:57 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:45:08 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:45:18 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:45:28 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:45:38 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:45:48 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:45:54 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:45:58 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:46:08 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:46:18 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:46:28 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:46:39 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:46:49 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:46:55 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:46:59 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:47:09 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:47:19 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:47:29 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:47:39 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:47:49 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:47:55 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:48:04 energy used up after 0 rolls: back to watching lobby ads
+09:48:06 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:48:08 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:48:16 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:48:26 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:48:36 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:48:46 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:48:57 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:49:07 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:49:08 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:49:17 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:49:27 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:49:37 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:49:47 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:49:57 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:50:08 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:50:09 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:50:18 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:50:28 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:50:38 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:50:48 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:50:58 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:51:04 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:51:13 energy used up after 0 rolls: back to watching lobby ads
+09:51:15 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:51:17 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:51:25 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:51:35 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:51:45 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:51:55 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:52:06 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:52:16 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:52:17 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:52:26 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:52:36 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:52:46 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:52:56 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:53:07 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:53:17 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:53:19 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:53:27 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:53:37 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:53:47 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:53:57 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:54:07 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:54:13 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:54:22 energy used up after 0 rolls: back to watching lobby ads
+09:54:24 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:54:26 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:54:35 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:54:45 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:54:55 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:55:05 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:55:15 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:55:25 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:55:27 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:55:35 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:55:45 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:55:56 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:56:06 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:56:16 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:56:26 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+09:56:28 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+09:56:36 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+09:56:46 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:56:56 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:57:07 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+09:57:17 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+09:57:23 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+09:57:26 trail tokens 591 >= 500: spending them
+09:57:26 trail: opening the TRAIL event
+09:57:45 trail: the page did not open
+09:57:48 multiplier x3 unreachable, rolling at x5
+09:57:48 roll #1 energy=10
+09:57:52 unknown screen: saved unknown_095751.png + its texts (shots/unknown_log.txt), tapping around
+09:57:54 sling screen detected: aim
+09:57:57 aim_live: not enough samples (70 face, 0 target) -> release now
+09:57:59 aim: sling still on screen, firing with a swipe
+09:58:02 aim: sling still on screen, firing with a swipe
+09:58:06 sling screen detected: aim
+09:58:09 aim_live: not enough samples (70 face, 0 target) -> release now
+09:58:11 aim: sling still on screen, firing with a swipe
+09:58:13 aim: sling still on screen, firing with a swipe
+09:58:18 sling screen detected: aim
+09:58:20 aim_live: not enough samples (70 face, 0 target) -> release now
+09:58:23 aim: sling still on screen, firing with a swipe
+09:58:25 aim: sling still on screen, firing with a swipe
+09:58:30 sling screen detected: aim
+09:58:32 aim_live: not enough samples (70 face, 0 target) -> release now
+09:58:34 aim: sling still on screen, firing with a swipe
+09:58:37 aim: sling still on screen, firing with a swipe
+09:58:41 sling screen detected: aim
+09:58:44 aim_live: not enough samples (70 face, 0 target) -> release now
+09:58:46 aim: sling still on screen, firing with a swipe
+09:58:49 aim: sling still on screen, firing with a swipe
+09:58:53 sling screen detected: aim
+09:58:56 aim_live: not enough samples (70 face, 0 target) -> release now
+09:58:58 aim: sling still on screen, firing with a swipe
+09:59:01 aim: sling still on screen, firing with a swipe
+09:59:05 sling screen detected: aim
+09:59:08 aim_live: not enough samples (70 face, 0 target) -> release now
+09:59:10 aim: sling still on screen, firing with a swipe
+09:59:13 aim: sling still on screen, firing with a swipe
+09:59:17 sling screen detected: aim
+09:59:20 aim_live: not enough samples (70 face, 0 target) -> release now
+09:59:22 aim: sling still on screen, firing with a swipe
+09:59:25 aim: sling still on screen, firing with a swipe
+09:59:29 sling screen detected: aim
+09:59:31 aim_live: not enough samples (70 face, 0 target) -> release now
+09:59:34 aim: sling still on screen, firing with a swipe
+09:59:36 aim: sling still on screen, firing with a swipe
+09:59:41 sling screen detected: aim
+09:59:43 aim_live: not enough samples (70 face, 0 target) -> release now
+09:59:45 aim: sling still on screen, firing with a swipe
+09:59:48 aim: sling still on screen, firing with a swipe
+09:59:52 sling screen detected: aim
+09:59:55 aim_live: not enough samples (70 face, 0 target) -> release now
+09:59:57 aim: sling still on screen, firing with a swipe
+10:00:00 aim: sling still on screen, firing with a swipe
+10:00:04 stuck for 159s without the lobby: recovery step 1
+10:00:05 recovery: trying the corner glyph at (256, 108)
+10:00:08 stuck for 163s without the lobby: recovery step 2
+10:00:11 stuck for 166s without the lobby: recovery step 3
+10:00:12 recovery: trying the corner glyph at (337, 57)
+10:00:15 stuck for 170s without the lobby: recovery step 4
+10:00:18 stuck for 173s without the lobby: recovery step 5
+10:00:19 recovery: trying the corner glyph at (341, 383)
+10:00:22 stuck for 177s without the lobby: recovery step 6
+10:00:23 recovery: BACK
+10:00:25 stuck for 180s without the lobby: recovery step 7
+10:00:26 recovery: trying the corner glyph at (273, 417)
+10:00:29 trail tokens 590 >= 500: spending them
+10:00:29 trail: opening the TRAIL event
+10:00:49 trail: the page did not open
+10:00:51 multiplier x3 unreachable, rolling at x5
+10:00:51 roll #2 energy=10
+10:00:54 sling screen detected: aim
+10:00:56 aim_live: not enough samples (70 face, 0 target) -> release now
+10:00:59 aim: sling still on screen, firing with a swipe
+10:01:01 aim: sling still on screen, firing with a swipe
+10:01:06 sling screen detected: aim
+10:01:08 aim_live: not enough samples (70 face, 0 target) -> release now
+10:01:10 aim: sling still on screen, firing with a swipe
+10:01:13 aim: sling still on screen, firing with a swipe
+10:01:18 sling screen detected: aim
+10:01:20 aim_live: not enough samples (70 face, 0 target) -> release now
+10:01:22 aim: sling still on screen, firing with a swipe
+10:01:25 aim: sling still on screen, firing with a swipe
+10:01:29 sling screen detected: aim
+10:01:32 aim_live: not enough samples (70 face, 0 target) -> release now
+10:01:34 aim: sling still on screen, firing with a swipe
+10:01:37 aim: sling still on screen, firing with a swipe
+10:01:41 sling screen detected: aim
+10:01:44 aim_live: not enough samples (70 face, 0 target) -> release now
+10:01:46 aim: sling still on screen, firing with a swipe
+10:01:49 aim: sling still on screen, firing with a swipe
+10:01:53 sling screen detected: aim
+10:01:56 aim_live: not enough samples (70 face, 0 target) -> release now
+10:01:58 aim: sling still on screen, firing with a swipe
+10:02:00 aim: sling still on screen, firing with a swipe
+10:02:05 sling screen detected: aim
+10:02:07 aim_live: not enough samples (70 face, 0 target) -> release now
+10:02:09 aim: sling still on screen, firing with a swipe
+10:02:12 aim: sling still on screen, firing with a swipe
+10:02:16 sling screen detected: aim
+10:02:19 aim_live: not enough samples (70 face, 0 target) -> release now
+10:02:21 aim: sling still on screen, firing with a swipe
+10:02:24 aim: sling still on screen, firing with a swipe
+10:02:28 sling screen detected: aim
+10:02:31 aim_live: not enough samples (70 face, 0 target) -> release now
+10:02:33 aim: sling still on screen, firing with a swipe
+10:02:36 aim: sling still on screen, firing with a swipe
+10:02:40 sling screen detected: aim
+10:02:43 aim_live: not enough samples (70 face, 0 target) -> release now
+10:02:45 aim: sling still on screen, firing with a swipe
+10:02:48 aim: sling still on screen, firing with a swipe
+10:02:52 sling screen detected: aim
+10:02:55 aim_live: not enough samples (70 face, 0 target) -> release now
+10:02:57 aim: sling still on screen, firing with a swipe
+10:03:00 aim: sling still on screen, firing with a swipe
+10:03:04 stuck for 155s without the lobby: recovery step 1
+10:03:05 recovery: trying the corner glyph at (1052, 199)
+10:03:08 stuck for 159s without the lobby: recovery step 2
+10:03:11 stuck for 162s without the lobby: recovery step 3
+10:03:12 recovery: trying the corner glyph at (334, 116)
+10:03:15 stuck for 166s without the lobby: recovery step 4
+10:03:18 stuck for 169s without the lobby: recovery step 5
+10:03:19 recovery: trying the corner glyph at (144, 390)
+10:03:22 stuck for 173s without the lobby: recovery step 6
+10:03:23 recovery: BACK
+10:03:25 stuck for 176s without the lobby: recovery step 7
+10:03:26 recovery: trying the corner glyph at (273, 417)
+10:03:29 trail tokens 589 >= 500: spending them
+10:03:29 trail: opening the TRAIL event
+10:03:49 trail: the page did not open
+10:03:51 multiplier x3 unreachable, rolling at x5
+10:03:51 roll #3 energy=10
+10:03:54 unknown screen: saved unknown_100354.png + its texts (shots/unknown_log.txt), tapping around
+10:04:51 multiplier steps available: [1, 2, 3, 5, 8, 10, 25, 50]
+10:04:56 multiplier -> x10
+10:04:56 roll #4 energy=10
+10:05:00 offer screen: closing without selecting tiles at (1001, 320)
+10:05:04 X button at (1014, 528): closing
+10:05:08 invite page: leaving without inviting anyone (exit at (978, 514))
+10:05:12 X button at (920, 661): closing
+10:05:22 energy used up after 4 rolls: back to watching lobby ads
+10:05:24 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:05:26 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:05:34 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:05:44 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:05:54 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:06:05 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:06:15 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:06:25 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:06:27 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:06:35 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:06:45 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:06:55 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:07:06 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:07:16 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:07:26 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:07:28 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:07:36 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:07:46 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:07:57 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:08:07 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:08:17 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:08:23 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:08:31 energy used up after 0 rolls: back to watching lobby ads
+10:08:33 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:08:35 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:08:43 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:08:53 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:09:04 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:09:14 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:09:24 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:09:34 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:09:36 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:09:44 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:09:54 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:10:04 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:10:14 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:10:24 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:10:34 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:10:36 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:10:44 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:10:55 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:11:05 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:11:15 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:11:25 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:11:35 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:11:37 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:11:45 energy used up after 0 rolls: back to watching lobby ads
+10:11:47 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:11:52 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:12:02 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:12:12 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:12:22 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:12:32 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:12:42 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:12:48 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:12:52 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:13:02 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:13:12 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:13:22 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:13:33 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:13:43 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:13:49 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:13:53 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:14:03 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:14:13 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:14:23 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:14:33 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:14:43 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:14:49 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:14:58 energy used up after 0 rolls: back to watching lobby ads
+10:15:00 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:15:02 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:15:10 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:15:21 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:15:31 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:15:41 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:15:51 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:16:01 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:16:02 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:16:11 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:16:21 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:16:31 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:16:41 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:16:52 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:17:01 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:17:03 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:17:12 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:17:22 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:17:32 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:17:42 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:17:53 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:17:58 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:18:07 energy used up after 0 rolls: back to watching lobby ads
+10:18:09 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:18:11 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:18:19 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:18:29 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:18:40 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:18:50 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:19:00 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:19:10 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:19:12 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:19:20 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:19:30 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:19:40 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:19:50 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:20:00 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:20:10 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:20:12 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:20:21 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:20:31 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:20:41 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:20:51 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:21:01 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:21:11 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:21:13 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:21:22 energy used up after 0 rolls: back to watching lobby ads
+10:21:24 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:21:28 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:21:38 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:21:48 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:21:58 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:22:08 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:22:18 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:22:24 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:22:28 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:22:38 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:22:48 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:22:58 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:23:08 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:23:19 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:23:24 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:23:29 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:23:39 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:23:49 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:23:59 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:24:09 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:24:19 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:24:25 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:24:34 energy used up after 0 rolls: back to watching lobby ads
+10:24:36 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:24:37 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:24:46 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:24:56 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:25:07 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:25:17 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:25:27 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:25:37 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:25:39 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:25:47 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:25:57 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:26:07 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:26:17 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:26:27 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:26:38 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:26:39 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:26:48 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:26:58 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:27:08 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:27:18 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:27:28 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:27:34 ads mode: no lobby video for 180s: rolling with dice/energy only (no building)
+10:27:36 trail tokens 588 >= 500: spending them
+10:27:36 trail: opening the TRAIL event
+10:27:55 trail: the page did not open
+10:27:57 multiplier x10 unreachable, rolling at x5
+10:27:57 roll #1 energy=10
+10:28:01 unknown screen: saved unknown_102801.png + its texts (shots/unknown_log.txt), tapping around
+10:28:49 multiplier -> x10
+10:28:49 roll #2 energy=10
+10:28:56 offer screen: closing without selecting tiles at (1001, 320)
+10:29:00 X button at (1014, 528): closing
+10:29:03 invite page: leaving without inviting anyone (exit at (978, 514))
+10:29:09 energy used up after 2 rolls: back to watching lobby ads
+10:29:11 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:29:13 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:29:22 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:29:32 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:29:42 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:29:52 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:30:02 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:30:12 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:30:14 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:30:22 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:30:32 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:30:42 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:30:52 ad: bubble not visible; panning lobby camera to search ((260, 1050) -> (820, 1050))
+10:31:03 ad: bubble not visible; panning lobby camera to search ((820, 1050) -> (260, 1050))
+10:31:13 ad: bubble not visible; panning lobby camera to search ((540, 1450) -> (540, 800))
+10:31:15 ads-only mode: no free video available; staying in ad-only mode without rolling or building
+10:31:23 ad: bubble not visible; panning lobby camera to search ((540, 800) -> (540, 1450))
+10:31:31 no screenshot: phone/adb disconnected? waiting...
+10:32:02 no screenshot: phone/adb disconnected? waiting...
+10:32:32 no screenshot: phone/adb disconnected? waiting...
+10:33:04 no screenshot: phone/adb disconnected? waiting...
+10:33:36 no screenshot: phone/adb disconnected? waiting...
+10:34:08 no screenshot: phone/adb disconnected? waiting...
+10:34:38 no screenshot: phone/adb disconnected? waiting...
+10:35:11 no screenshot: phone/adb disconnected? waiting...
+10:35:41 no screenshot: phone/adb disconnected? waiting...
+10:36:13 no screenshot: phone/adb disconnected? waiting...
+10:36:43 no screenshot: phone/adb disconnected? waiting...
+10:37:15 no screenshot: phone/adb disconnected? waiting...
+10:37:46 no screenshot: phone/adb disconnected? waiting...
+10:38:18 no screenshot: phone/adb disconnected? waiting...
+10:38:48 no screenshot: phone/adb disconnected? waiting...
+10:39:20 no screenshot: phone/adb disconnected? waiting...
+10:39:51 no screenshot: phone/adb disconnected? waiting...
+10:40:23 no screenshot: phone/adb disconnected? waiting...
+10:40:53 no screenshot: phone/adb disconnected? waiting...
+10:41:25 no screenshot: phone/adb disconnected? waiting...
+10:41:56 no screenshot: phone/adb disconnected? waiting...
+10:42:28 no screenshot: phone/adb disconnected? waiting...
+10:42:58 no screenshot: phone/adb disconnected? waiting...
+10:43:30 no screenshot: phone/adb disconnected? waiting...
+10:44:00 no screenshot: phone/adb disconnected? waiting...
+10:44:33 no screenshot: phone/adb disconnected? waiting...
+10:45:03 no screenshot: phone/adb disconnected? waiting...
+10:45:35 no screenshot: phone/adb disconnected? waiting...
+10:46:05 no screenshot: phone/adb disconnected? waiting...
+10:46:38 no screenshot: phone/adb disconnected? waiting...
+10:47:08 no screenshot: phone/adb disconnected? waiting...
+10:47:40 no screenshot: phone/adb disconnected? waiting...
+10:48:10 no screenshot: phone/adb disconnected? waiting...
+10:48:43 no screenshot: phone/adb disconnected? waiting...
+10:49:13 no screenshot: phone/adb disconnected? waiting...
+10:49:45 no screenshot: phone/adb disconnected? waiting...
+10:50:15 no screenshot: phone/adb disconnected? waiting...
+10:50:48 no screenshot: phone/adb disconnected? waiting...
+10:51:18 no screenshot: phone/adb disconnected? waiting...
+10:51:50 no screenshot: phone/adb disconnected? waiting...
+10:52:20 no screenshot: phone/adb disconnected? waiting...
+10:52:52 no screenshot: phone/adb disconnected? waiting...
+10:53:23 no screenshot: phone/adb disconnected? waiting...
+10:53:55 no screenshot: phone/adb disconnected? waiting...
+10:54:25 no screenshot: phone/adb disconnected? waiting...
+10:54:57 no screenshot: phone/adb disconnected? waiting...
+10:55:28 no screenshot: phone/adb disconnected? waiting...
+10:56:00 no screenshot: phone/adb disconnected? waiting...
+10:56:30 no screenshot: phone/adb disconnected? waiting...
+10:57:02 no screenshot: phone/adb disconnected? waiting...
+10:57:32 no screenshot: phone/adb disconnected? waiting...
+10:58:05 no screenshot: phone/adb disconnected? waiting...
+10:58:35 no screenshot: phone/adb disconnected? waiting...
+10:59:07 no screenshot: phone/adb disconnected? waiting...
+10:59:37 no screenshot: phone/adb disconnected? waiting...
+11:00:10 no screenshot: phone/adb disconnected? waiting...
+11:00:40 no screenshot: phone/adb disconnected? waiting...
+11:01:12 no screenshot: phone/adb disconnected? waiting...
+11:01:42 no screenshot: phone/adb disconnected? waiting...
+11:02:15 no screenshot: phone/adb disconnected? waiting...
+11:02:45 no screenshot: phone/adb disconnected? waiting...
+11:03:17 no screenshot: phone/adb disconnected? waiting...
+11:03:47 no screenshot: phone/adb disconnected? waiting...
+11:04:20 no screenshot: phone/adb disconnected? waiting...
+11:04:50 no screenshot: phone/adb disconnected? waiting...
+11:05:22 no screenshot: phone/adb disconnected? waiting...
+11:05:52 no screenshot: phone/adb disconnected? waiting...
+11:06:24 no screenshot: phone/adb disconnected? waiting...
+11:06:55 no screenshot: phone/adb disconnected? waiting...
+11:07:27 no screenshot: phone/adb disconnected? waiting...
+11:07:57 no screenshot: phone/adb disconnected? waiting...
+11:08:29 no screenshot: phone/adb disconnected? waiting...
+11:09:00 no screenshot: phone/adb disconnected? waiting...
+11:09:32 no screenshot: phone/adb disconnected? waiting...
+11:10:02 no screenshot: phone/adb disconnected? waiting...
+11:10:34 no screenshot: phone/adb disconnected? waiting...
+11:11:04 no screenshot: phone/adb disconnected? waiting...
+11:11:37 no screenshot: phone/adb disconnected? waiting...
+11:12:07 no screenshot: phone/adb disconnected? waiting...
+11:12:39 no screenshot: phone/adb disconnected? waiting...
+11:13:09 no screenshot: phone/adb disconnected? waiting...
+11:13:42 no screenshot: phone/adb disconnected? waiting...
+11:14:12 no screenshot: phone/adb disconnected? waiting...
+11:14:44 no screenshot: phone/adb disconnected? waiting...
+11:15:14 no screenshot: phone/adb disconnected? waiting...
+11:15:47 no screenshot: phone/adb disconnected? waiting...
+11:16:17 no screenshot: phone/adb disconnected? waiting...
+11:16:49 no screenshot: phone/adb disconnected? waiting...
+11:17:19 no screenshot: phone/adb disconnected? waiting...
+11:17:52 no screenshot: phone/adb disconnected? waiting...
+11:18:22 no screenshot: phone/adb disconnected? waiting...
+11:18:54 no screenshot: phone/adb disconnected? waiting...
+11:19:24 no screenshot: phone/adb disconnected? waiting...
+11:19:56 no screenshot: phone/adb disconnected? waiting...
+11:20:27 no screenshot: phone/adb disconnected? waiting...
+11:20:59 no screenshot: phone/adb disconnected? waiting...
+11:21:29 no screenshot: phone/adb disconnected? waiting...
+11:22:01 no screenshot: phone/adb disconnected? waiting...
+11:22:32 no screenshot: phone/adb disconnected? waiting...
+11:23:04 no screenshot: phone/adb disconnected? waiting...
+11:23:34 no screenshot: phone/adb disconnected? waiting...
+11:24:06 no screenshot: phone/adb disconnected? waiting...
+11:24:36 no screenshot: phone/adb disconnected? waiting...
+11:25:09 no screenshot: phone/adb disconnected? waiting...
+11:25:39 no screenshot: phone/adb disconnected? waiting...
+11:26:11 no screenshot: phone/adb disconnected? waiting...
+11:26:41 no screenshot: phone/adb disconnected? waiting...
+11:27:14 no screenshot: phone/adb disconnected? waiting...
+11:27:44 no screenshot: phone/adb disconnected? waiting...
+11:28:16 no screenshot: phone/adb disconnected? waiting...
+11:28:46 no screenshot: phone/adb disconnected? waiting...
+11:29:19 no screenshot: phone/adb disconnected? waiting...
+11:29:49 no screenshot: phone/adb disconnected? waiting...
+11:30:21 no screenshot: phone/adb disconnected? waiting...
+11:30:51 no screenshot: phone/adb disconnected? waiting...
+11:31:24 no screenshot: phone/adb disconnected? waiting...
+11:31:54 no screenshot: phone/adb disconnected? waiting...
+11:32:26 no screenshot: phone/adb disconnected? waiting...
+11:32:56 no screenshot: phone/adb disconnected? waiting...
+11:33:28 no screenshot: phone/adb disconnected? waiting...
+11:33:59 no screenshot: phone/adb disconnected? waiting...
+11:34:31 no screenshot: phone/adb disconnected? waiting...
+11:35:01 no screenshot: phone/adb disconnected? waiting...
+11:35:33 no screenshot: phone/adb disconnected? waiting...
+11:36:04 no screenshot: phone/adb disconnected? waiting...
+11:36:36 no screenshot: phone/adb disconnected? waiting...
+11:37:06 no screenshot: phone/adb disconnected? waiting...
+11:37:38 no screenshot: phone/adb disconnected? waiting...
+11:38:09 no screenshot: phone/adb disconnected? waiting...
+11:38:41 no screenshot: phone/adb disconnected? waiting...
+11:39:11 no screenshot: phone/adb disconnected? waiting...
+11:39:43 no screenshot: phone/adb disconnected? waiting...
+11:40:13 no screenshot: phone/adb disconnected? waiting...
+11:40:46 no screenshot: phone/adb disconnected? waiting...
+11:41:16 no screenshot: phone/adb disconnected? waiting...
+11:41:48 no screenshot: phone/adb disconnected? waiting...
+11:42:18 no screenshot: phone/adb disconnected? waiting...
+11:42:51 no screenshot: phone/adb disconnected? waiting...
+11:43:21 no screenshot: phone/adb disconnected? waiting...
+11:43:53 no screenshot: phone/adb disconnected? waiting...
+11:44:23 no screenshot: phone/adb disconnected? waiting...
+11:44:56 no screenshot: phone/adb disconnected? waiting...
+11:45:26 no screenshot: phone/adb disconnected? waiting...
+11:45:58 no screenshot: phone/adb disconnected? waiting...
+11:46:28 no screenshot: phone/adb disconnected? waiting...
+11:47:01 no screenshot: phone/adb disconnected? waiting...
+11:47:31 no screenshot: phone/adb disconnected? waiting...
+11:48:03 no screenshot: phone/adb disconnected? waiting...
+11:48:33 no screenshot: phone/adb disconnected? waiting...
+11:49:05 no screenshot: phone/adb disconnected? waiting...
+11:49:36 no screenshot: phone/adb disconnected? waiting...
+11:50:08 no screenshot: phone/adb disconnected? waiting...
+11:50:38 no screenshot: phone/adb disconnected? waiting...
+11:51:10 no screenshot: phone/adb disconnected? waiting...
+11:51:41 no screenshot: phone/adb disconnected? waiting...
+11:52:13 no screenshot: phone/adb disconnected? waiting...
+11:52:43 no screenshot: phone/adb disconnected? waiting...
+11:53:15 no screenshot: phone/adb disconnected? waiting...
+11:53:45 no screenshot: phone/adb disconnected? waiting...
+11:54:18 no screenshot: phone/adb disconnected? waiting...
+11:54:48 no screenshot: phone/adb disconnected? waiting...
+11:55:20 no screenshot: phone/adb disconnected? waiting...
+11:55:50 no screenshot: phone/adb disconnected? waiting...
+11:56:23 no screenshot: phone/adb disconnected? waiting...
+11:56:53 no screenshot: phone/adb disconnected? waiting...
+11:57:25 no screenshot: phone/adb disconnected? waiting...
+11:57:55 no screenshot: phone/adb disconnected? waiting...
+11:58:28 no screenshot: phone/adb disconnected? waiting...
+11:58:58 no screenshot: phone/adb disconnected? waiting...
+11:59:30 no screenshot: phone/adb disconnected? waiting...

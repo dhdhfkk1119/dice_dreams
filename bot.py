@@ -1172,6 +1172,14 @@ def use_video_craze():
         wt = [(int(sum(p[0] for p in b) / 4), int(sum(p[1] for p in b) / 4)) for b, t, _ in found
               if t.strip().upper().startswith("WATCH") and len(t.strip()) <= 14]
         if not wt:
+            all_texts = " ".join(t for _, t, _ in found).upper()
+            if "COMPLETED" in all_texts or re.search(r"TAP\W{0,2}TO", all_texts):
+                # the finished-event reward screen (SHOWTIME JOURNEY COMPLETED! ... TAP TO COLLECT): collect it,
+                # otherwise it keeps looking like a video-tier page that has no WATCH buttons
+                log("video event: event completed, collecting the reward")
+                tap_to_collect(found, all_texts)
+                time.sleep(1.5)
+                continue
             log("video event: no WATCH buttons detected")
             break
         # Try one WATCH at a time, preferring buttons without a detected lock and then the lowest visible tier.
@@ -1375,7 +1383,7 @@ def find_ad_close_box(img):
                     if float((diag1 < 160).mean()) > 0.4 and float((diag2 < 160).mean()) > 0.4:
                         return x, y
     if not landscape(img):
-        return find_grey_circle_x(img) or find_bare_white_x(img)
+        return find_grey_circle_x(img)
     return None
 
 
@@ -1385,9 +1393,12 @@ def find_bare_white_x(img):
     h, w = img.shape[:2]
     white = (img.min(axis=2) > 240).astype(np.float32)
     frac = cv2.boxFilter(white, -1, (31, 31), borderType=cv2.BORDER_CONSTANT)
+    wide = cv2.boxFilter(white, -1, (71, 71), borderType=cv2.BORDER_CONSTANT)
+    # a lone glyph: little white in the 71x71 frame outside its own 31x31 core (lettering has neighbours: >= 0.12, a lone X: 0.05-0.12 - only a last resort, see _ride_ad)
+    around = (wide * 71 * 71 - frac * 31 * 31) / (71 * 71 - 31 * 31)
     pts = []
     for y0, y1, x0, x1 in ((90, 420, 30, 330), (90, 420, w - 330, w - 30)):
-        ys, xs = np.nonzero((frac[y0:y1, x0:x1] > 0.03) & (frac[y0:y1, x0:x1] < 0.30))
+        ys, xs = np.nonzero((frac[y0:y1, x0:x1] > 0.03) & (frac[y0:y1, x0:x1] < 0.30) & (around[y0:y1, x0:x1] < 0.13))
         for y, x in zip(ys[::3], xs[::3]):
             if _x_diag_shaped(img, x0 + int(x), y0 + int(y), r=15, x_min=240):
                 pts.append((x0 + int(x), y0 + int(y)))
@@ -1473,6 +1484,24 @@ def find_grey_circle_x(img):
     return loc[0] + x0, loc[1] + y0
 
 
+def find_bubble_character(img, bubble):
+    """The little orange character that holds the free-video bubble: it stands right under the bubble's tail.
+    Colour-segments the orange body in a box below the bubble and returns the blob's centre, or None."""
+    bx, by = bubble
+    h, w = img.shape[:2]
+    x0, x1, y0, y1 = max(bx - 90, 0), min(bx + 90, w), by + 70, min(by + 260, h)
+    if y1 - y0 < 40:
+        return None
+    hsv = cv2.cvtColor(img[y0:y1, x0:x1], cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, (10, 170, 225), (20, 255, 255))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+    n, _, st, cen = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    best = max(range(1, n), key=lambda i: st[i][4], default=None)
+    if best is None or st[best][4] < 150:
+        return None
+    return x0 + int(cen[best][0]), y0 + int(cen[best][1])
+
+
 def watch_ad(img=None, max_s=240):
     """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game.
     No cap here: the caller (main loop) stops asking for more as soon as any energy is back."""
@@ -1481,20 +1510,33 @@ def watch_ad(img=None, max_s=240):
     pos = find_video_bubble(img)
     if pos is None:
         _video_bubble_misses += 1
-        if _video_bubble_misses % 5 == 0 and roll_visible(img) and find_close_x(img) is None:
-            direction = (_video_bubble_misses // 5 - 1) % 2
-            start, end = ((820, 1050), (260, 1050)) if direction == 0 else ((260, 1050), (820, 1050))
+        if _video_bubble_misses % 2 == 0 and roll_visible(img) and find_close_x(img) is None:
+            # the lobby camera is often zoomed in, so the bubble can be off-screen: sweep left, right, up and down
+            # (each pair of opposite swipes returns the camera, so the sweep keeps visiting the same five views)
+            sweep = (((820, 1050), (260, 1050)), ((260, 1050), (820, 1050)),
+                     ((260, 1050), (820, 1050)), ((820, 1050), (260, 1050)),
+                     ((540, 1450), (540, 800)), ((540, 800), (540, 1450)),
+                     ((540, 800), (540, 1450)), ((540, 1450), (540, 800)))
+            start, end = sweep[(_video_bubble_misses // 2 - 1) % len(sweep)]
             if GAME_PKG in focus() and not is_ad_focus(focus()):
-                log("ad: bubble not visible; panning lobby camera to search")
-                adb("shell", "input", "swipe", str(start[0]), str(start[1]), str(end[0]), str(end[1]), "700")
+                log(f"ad: bubble not visible; panning lobby camera to search ({start} -> {end})")
+                adb("shell", "input", "swipe", str(start[0]), str(start[1]), str(end[0]), str(end[1]), "600")
                 time.sleep(1)
         return False
     _video_bubble_misses = 0
     if find_close_x(img) is not None or not roll_visible(img):
         return False
     tap(pos, 3)
-    if not is_ad_focus(focus()):  # the bubble tap did not open a video: not an ad, do not count it
-        return False
+    if not is_ad_focus(focus()):
+        # the bubble itself did nothing: try the character that holds it (if it cannot be found, or that does
+        # nothing either, this is not an ad and the usual rules go on)
+        who = find_bubble_character(shot(), pos)
+        if who is None:
+            return False
+        log(f"ad: bubble tap opened nothing; tapping the character holding it at {who}")
+        tap(who, 3)
+        if not is_ad_focus(focus()):
+            return False
     _last_ad = time.time()
     _ads_in_batch += 1
     log(f"ad: watching a free video #{_ads_in_batch} (refilling to 50 energy, bubble at {pos})")
@@ -1616,6 +1658,7 @@ def _ride_ad(max_s=240):
     pending = None      # (screenshot before, candidate, time) of the last unknown button we pressed
     last_try = 0.0
     pressed = {}        # known button -> times pressed in this ad (a button that never works is skipped after 3)
+    corner_spots = [(985, 165), (88, 170)]  # top-right / top-left skip-glyph spots, tried once each late in an ad
     t_abs = time.time()
     while time.time() - t0 < max_s and time.time() - t_abs < 420:
         f = focus()
@@ -1700,8 +1743,18 @@ def _ride_ad(max_s=240):
             continue
         sk = find_skip_text(img)
         hit = None if sk else adlearn.find_known(img)
-        xy = sk or ((hit[0], hit[1]) if hit else find_ad_close_box(img)) or find_anywhere_close(img)
-        if xy and not sk and adlearn.is_bad(img, xy[0], xy[1]):  # mute / info / store openers look a bit like an X
+        src_box = None
+        xy = sk or ((hit[0], hit[1]) if hit else None)
+        if xy is None:
+            xy = find_ad_close_box(img)
+            src_box = xy is not None
+        if xy is None:
+            xy = find_anywhere_close(img)  # its X-shape test is strict: the bad-glyph list does not veto it
+        if xy is None:
+            xy = find_bare_white_x(img)    # last: its diagonal test also fires on lettering such as PLAY NOW
+        if xy and src_box and adlearn.is_bad(img, xy[0], xy[1]):
+            # mute / info / store openers look a bit like an X; a glyph from the trained exit set (find_known) is
+            # never vetoed by that list - a sloppy bad entry once blocked a real skip button for the whole ad
             xy = None
         if xy and pressed.get((xy[0] // 50, xy[1] // 50), 0) >= 3:
             xy = None
@@ -1737,6 +1790,15 @@ def _ride_ad(max_s=240):
                 cv2.imwrite(os.path.join(OUT, f"ad_try_{time.strftime('%H%M%S')}.png"), img)
                 tap(c[:2], 1.5)
                 continue
+        if time.time() - t0 > 125 and corner_spots and time.time() - last_try > 5:
+            # still nothing recognisable after the 2-minute mark (a translucent skip disc laid over a coloured
+            # button, say): press the spots where skip / X glyphs usually sit, once each - a store that opens
+            # is closed again, nothing is ever installed
+            last_try = time.time()
+            spot = corner_spots.pop(0)
+            log(f"ad: no exit recognised; trying the usual corner spot {spot}")
+            tap(spot, 2.5)
+            continue
         if poked and not stored and time.time() - t0 > 140:
             # opening the store is harmless (we come back, nothing is ever installed): press the ad's big button
             stored = True
@@ -2335,6 +2397,7 @@ def claim_weekly():
     return claimed
 
 
+ADS_NO_LOBBY_RESTART_S = 420  # ads mode: restart the game when the lobby has not been seen for this long
 NO_AD_SWITCH_S = 180  # ads-only mode also falls back to normal play after 3 minutes without a video
 
 
@@ -2451,6 +2514,7 @@ def run_ads_only(max_ads, until_hammer=False):
     lobby offers, 2) when none is left, roll with dice/energy only, 3) repeat."""
     watched = 0
     last_video = time.time()
+    last_lobby = time.time()  # last time the lobby (ROLL button) was on screen
     last_notice = time.time()
     touch_ok()
     target = " until the golden hammer appears" if until_hammer else ""
@@ -2461,6 +2525,19 @@ def run_ads_only(max_ads, until_hammer=False):
             log("ads-only mode: golden-hammer discount is active")
             return
         f = focus()
+        if roll_visible(img):
+            last_lobby = time.time()
+        elif time.time() - last_lobby > ADS_NO_LOBBY_RESTART_S:
+            # an ad with no way out (no X, BACK ignored), or any page nothing in here can leave: ride_ad() resets
+            # the ordinary stuck timer on every call, so restart the game - the one thing that always gets out
+            log(f"ads mode: no lobby for {time.time() - last_lobby:.0f}s: restarting the game")
+            adb("shell", "am", "force-stop", GAME_PKG)
+            time.sleep(2)
+            adb("shell", "monkey", "-p", GAME_PKG, "-c", "android.intent.category.LAUNCHER", "1")
+            time.sleep(25)
+            touch_ok()
+            last_lobby = time.time()
+            continue
         if f and (is_ad_focus(f) or is_ad_any(f)):
             ride_ad()
             continue
@@ -2509,7 +2586,7 @@ def run_ads_only(max_ads, until_hammer=False):
         if not until_hammer and roll_visible(img) and time.time() - last_video >= NO_AD_SWITCH_S:
             log(f"ads mode: no lobby video for {NO_AD_SWITCH_S}s: rolling with dice/energy only (no building)")
             play(1_000_000, stop_when_empty=True, no_build=True)
-            last_video = time.time()  # videos get a fresh NO_AD_SWITCH_S window after each roll phase
+            last_video = last_lobby = time.time()  # fresh windows after each roll phase (it has its own recovery)
             continue
         if not roll_visible(img) and time.time() - _last_ok > ADS_STUCK_S:
             # not the lobby, not an ad, not any of the quick exits above for ADS_STUCK_S straight: a payment
@@ -2549,6 +2626,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
     refilling = False
     no_ad_since = None
     no_ad_fallback = False
+    settle_n = 0   # consecutive calm 'no energy' looks in stop_when_empty mode (reset whenever energy shows again)
     ad_peek = 0.0  # last time the lobby was checked for a free video while playing (stop_when_empty)
     e0 = energy(shot())
     if not sale_drain and not stop_when_empty and e0 is not None and e0 < 60:
@@ -2869,6 +2947,7 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
         if e >= 1:  # energy first: spend it all, down to 0
             idle = 0
             no_ad_fallback = False
+            settle_n = 0
             if find_close_x(img) is not None:  # a popup sits on top of the board: never tap ROLL/xN
                 lock_buy_zone()
                 tap(find_close_x(img), 1.2)
@@ -2966,6 +3045,12 @@ def play(max_rolls, sale_drain=False, stop_when_empty=False, no_build=False):
             log(f"sale: stored energy depleted after {rolls} rolls")
             return "energy_depleted"
         if stop_when_empty:
+            # the last roll can still be playing out (an attack / steal / pinball mini-game that opens right
+            # after it): only hand over to the ad loop once the board has stayed calm for a few seconds
+            settle_n += 1
+            if settle_n < 3 or time.time() - last_roll_t < 12:
+                time.sleep(2)
+                continue
             log(f"energy used up after {rolls} rolls: back to watching lobby ads")
             return "energy_depleted"
         if not refilling:
