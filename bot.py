@@ -5,7 +5,7 @@ after MAX_ROLLS, or when an unknown screen persists (screenshot saved for review
 Usage: python bot.py [max_rolls] [noupgrade] | ads [max_ads] | ads hammer | sale [max_rolls]
 `noupgrade`: roll and run TRAIL normally, but never open the hammer panel or spend coins on upgrades.
 """
-import os, re, subprocess, sys, time
+import glob, os, re, subprocess, sys, time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -1252,6 +1252,53 @@ def find_ad_x_glyph(img):
     return (hit[0], hit[1]) if hit else None
 
 
+NEXT_VIEW_TPLS = [(os.path.basename(f), cv2.imread(f, 0)) for f in sorted(glob.glob(os.path.join(BASE_DIR, "ad_buttons", "next_view*.png")))]
+NEXT_VIEW_THR = 0.72
+NEXT_VIEW_SCALES = (0.75, 0.9, 1.0, 1.12, 1.3, 1.5)
+
+
+def find_next_view(img):
+    """The "다음 보기" (watch next) button some ads show - e.g. Market Kurly's - that moves on to the next ad. The OCR
+    cannot read Hangul at all, so it is found by matching ad_buttons/next_view*.png (a crop of the button) anywhere
+    on the frame. Returns its centre, or None (also when no template exists yet)."""
+    if not NEXT_VIEW_TPLS:
+        return None
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    search = cv2.resize(gray, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+    best = None
+    for name, tpl in NEXT_VIEW_TPLS:
+        if tpl is None:
+            continue
+        for scale in NEXT_VIEW_SCALES:
+            t = cv2.resize(tpl, None, fx=scale * 0.5, fy=scale * 0.5,
+                           interpolation=cv2.INTER_AREA if scale * 0.5 < 1 else cv2.INTER_CUBIC)
+            if min(t.shape) < 8 or t.shape[0] >= search.shape[0] or t.shape[1] >= search.shape[1]:
+                continue
+            _, score, _, loc = cv2.minMaxLoc(cv2.matchTemplate(search, t, cv2.TM_CCOEFF_NORMED))
+            if best is None or score > best[0]:
+                best = (score, name, loc, t.shape[1], t.shape[0])
+    if best is None or best[0] < NEXT_VIEW_THR:
+        return None
+    score, name, (left, top), width, height = best
+    return (left + width // 2) * 2, (top + height // 2) * 2
+
+
+PEEK_DIR = os.path.join(OUT, "peek")
+
+
+def save_peek(img, keep=60):
+    """Small JPEG of the ad on screen, newest `keep` kept: lets a button that is new to the bot be cropped into a
+    template later (the time of the ad in the log tells which file)."""
+    try:
+        os.makedirs(PEEK_DIR, exist_ok=True)
+        cv2.imwrite(os.path.join(PEEK_DIR, f"peek_{time.strftime('%m%d_%H%M%S')}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        old = sorted(glob.glob(os.path.join(PEEK_DIR, "peek_*.jpg")))
+        for f in old[:-keep]:
+            os.remove(f)
+    except OSError:
+        pass
+
+
 def find_skip_text(img):
     """Find a recognized ad skip/close label, checking all four corners in landscape."""
     h, w = img.shape[:2]
@@ -1502,14 +1549,42 @@ def find_bubble_character(img, bubble):
     return x0 + int(cen[best][0]), y0 + int(cen[best][1])
 
 
+BUBBLE_FAIL_RESTART = 5     # this many bubble taps in a row that open no video -> restart the game
+BUBBLE_RESTART_GAP_S = 900  # ... but at most once per 15 minutes (a bubble that never works must not loop restarts)
+_bubble_fails = 0
+_last_bubble_restart = 0.0
+
+
+def _wait_ad_open(seconds):
+    """Poll until an ad window is in front, at most `seconds`."""
+    end = time.time() + seconds
+    while True:
+        if is_ad_focus(focus()):
+            return True
+        if time.time() >= end:
+            return False
+        time.sleep(1.0)
+
+
+def restart_game(why):
+    """Force-stop and relaunch the game (progress lives on the server), then wait for it to load."""
+    log(f"restarting the game: {why}")
+    adb("shell", "am", "force-stop", GAME_PKG)
+    time.sleep(2)
+    adb("shell", "monkey", "-p", GAME_PKG, "-c", "android.intent.category.LAUNCHER", "1")
+    time.sleep(25)
+    touch_ok()
+
+
 def watch_ad(img=None, max_s=240):
     """Start the free video from the lobby bubble, wait it out, close it with its X, and get back to the game.
     No cap here: the caller (main loop) stops asking for more as soon as any energy is back."""
-    global _last_ad, _ads_in_batch, _video_bubble_misses
+    global _last_ad, _ads_in_batch, _video_bubble_misses, _bubble_fails, _last_bubble_restart
     img = shot() if img is None else img
     pos = find_video_bubble(img)
     if pos is None:
         _video_bubble_misses += 1
+        _bubble_fails = 0   # "in a row": a look without the bubble ends the streak
         if _video_bubble_misses % 2 == 0 and roll_visible(img) and find_close_x(img) is None:
             # the lobby camera is often zoomed in, so the bubble can be off-screen: sweep left, right, up and down
             # (each pair of opposite swipes returns the camera, so the sweep keeps visiting the same five views)
@@ -1527,16 +1602,27 @@ def watch_ad(img=None, max_s=240):
     if find_close_x(img) is not None or not roll_visible(img):
         return False
     tap(pos, 3)
-    if not is_ad_focus(focus()):
+    opened = _wait_ad_open(3.5)   # a slow phone / game can take several seconds to bring the ad up
+    if not opened:
         # the bubble itself did nothing: try the character that holds it (if it cannot be found, or that does
         # nothing either, this is not an ad and the usual rules go on)
         who = find_bubble_character(shot(), pos)
-        if who is None:
-            return False
-        log(f"ad: bubble tap opened nothing; tapping the character holding it at {who}")
-        tap(who, 3)
-        if not is_ad_focus(focus()):
-            return False
+        if who is not None:
+            log(f"ad: bubble tap opened nothing; tapping the character holding it at {who}")
+            tap(who, 3)
+            opened = _wait_ad_open(3.5)
+    if not opened:
+        _bubble_fails += 1
+        log(f"ad: bubble tapped but no video opened ({_bubble_fails}/{BUBBLE_FAIL_RESTART})")
+        if _bubble_fails >= BUBBLE_FAIL_RESTART:
+            _bubble_fails = 0
+            if time.time() - _last_bubble_restart >= BUBBLE_RESTART_GAP_S:
+                _last_bubble_restart = time.time()
+                restart_game(f"{BUBBLE_FAIL_RESTART} bubble taps in a row opened no video (game / phone lag)")
+            else:
+                log("ad: not restarting again so soon (it already was restarted for this recently)")
+        return False
+    _bubble_fails = 0
     _last_ad = time.time()
     _ads_in_batch += 1
     log(f"ad: watching a free video #{_ads_in_batch} (refilling to 50 energy, bubble at {pos})")
@@ -1658,6 +1744,7 @@ def _ride_ad(max_s=240):
     pending = None      # (screenshot before, candidate, time) of the last unknown button we pressed
     last_try = 0.0
     pressed = {}        # known button -> times pressed in this ad (a button that never works is skipped after 3)
+    last_peek = 0.0
     corner_spots = [(985, 165), (88, 170)]  # top-right / top-left skip-glyph spots, tried once each late in an ad
     t_abs = time.time()
     while time.time() - t0 < max_s and time.time() - t_abs < 420:
@@ -1732,6 +1819,15 @@ def _ride_ad(max_s=240):
                 log(f"ad: back arrow at {ba}: pressing it")
                 tap(ba, 2.0)
                 continue
+        if time.time() - last_peek > 25:
+            last_peek = time.time()
+            save_peek(img)
+        nv = find_next_view(img)
+        if nv is not None and pressed.get(("next", nv[0] // 50, nv[1] // 50), 0) < 8:
+            pressed[("next", nv[0] // 50, nv[1] // 50)] = pressed.get(("next", nv[0] // 50, nv[1] // 50), 0) + 1
+            log(f"ad: next-view button at {nv}: pressing it")
+            tap(nv, 2.5)
+            continue
         if ad_playing(img):  # watch the video to its end (reward), exit buttons only afterwards
             t0 = max(t0, time.time() - 20)  # the "no exit button" timers start once the video is over
             time.sleep(5)  # just re-read the screen for a real skip/X/known button; never a blind guess
@@ -1748,9 +1844,11 @@ def _ride_ad(max_s=240):
         if xy is None:
             xy = find_ad_close_box(img)
             src_box = xy is not None
-        if xy is None:
+        # the two shape-only fallbacks fire on the video's own white lettering / captions, and a tap on a playing
+        # video clicks through to the advertiser: they only get a say once the first seconds of the ad are over
+        if xy is None and time.time() - t0 > 25:
             xy = find_anywhere_close(img)  # its X-shape test is strict: the bad-glyph list does not veto it
-        if xy is None:
+        if xy is None and time.time() - t0 > 45:
             xy = find_bare_white_x(img)    # last: its diagonal test also fires on lettering such as PLAY NOW
         if xy and src_box and adlearn.is_bad(img, xy[0], xy[1]):
             # mute / info / store openers look a bit like an X; a glyph from the trained exit set (find_known) is
@@ -2397,6 +2495,8 @@ def claim_weekly():
     return claimed
 
 
+ADS_DRY_RESTART_S = 1200   # ads mode: no video watched for this long (lobby calm) -> restart the game; the free-video
+                           # bubble stays gone for hours otherwise, and came straight back after a restart
 ADS_NO_LOBBY_RESTART_S = 420  # ads mode: restart the game when the lobby has not been seen for this long
 NO_AD_SWITCH_S = 180  # ads-only mode also falls back to normal play after 3 minutes without a video
 
@@ -2515,6 +2615,7 @@ def run_ads_only(max_ads, until_hammer=False):
     watched = 0
     last_video = time.time()
     last_lobby = time.time()  # last time the lobby (ROLL button) was on screen
+    last_watch = last_dry_restart = time.time()  # last video watched / last restart for a dry spell
     last_notice = time.time()
     touch_ok()
     target = " until the golden hammer appears" if until_hammer else ""
@@ -2545,7 +2646,7 @@ def run_ads_only(max_ads, until_hammer=False):
             tier_ads = use_video_craze()
             watched += tier_ads
             if tier_ads:
-                last_notice = last_video = time.time()
+                last_notice = last_video = last_watch = time.time()
                 log(f"ads mode: watched {tier_ads} Endless Rewards video tier(s), {watched}/{max_ads} total")
             continue
         if landscape(img):  # a rotated ad: ride_ad() only acts on a recognised glyph, never a blind coordinate
@@ -2580,9 +2681,14 @@ def run_ads_only(max_ads, until_hammer=False):
         if roll_visible(img) and time.time() - _last_ad > 20:
             if try_video_event(img) or watch_ad(img):
                 watched += 1
-                last_notice = last_video = time.time()
+                last_notice = last_video = last_watch = time.time()
                 log(f"ads mode: {watched}/{max_ads} watched")
                 continue
+        if (not until_hammer and roll_visible(img) and find_close_x(img) is None
+                and time.time() - last_watch >= ADS_DRY_RESTART_S and time.time() - last_dry_restart >= ADS_DRY_RESTART_S):
+            last_dry_restart = last_lobby = last_video = time.time()
+            restart_game(f"no free video for {ADS_DRY_RESTART_S // 60} min: restarting to bring the video bubble back")
+            continue
         if not until_hammer and roll_visible(img) and time.time() - last_video >= NO_AD_SWITCH_S:
             log(f"ads mode: no lobby video for {NO_AD_SWITCH_S}s: rolling with dice/energy only (no building)")
             play(1_000_000, stop_when_empty=True, no_build=True)
