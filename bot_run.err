@@ -1,0 +1,10 @@
+D:\dice_dreams\bot.py:175: RuntimeWarning: Mean of empty slice
+  red = ((r > 200) & (g < 130) & (b < 110) & (r > 1.8 * g)).mean()
+C:\Users\whwhw\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\numpy\_core\_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\dice_dreams\bot.py:177: RuntimeWarning: Mean of empty slice
+  white = (mid.min(axis=2) > 225).mean()
+D:\dice_dreams\bot.py:1339: RuntimeWarning: Mean of empty slice
+  white = float((box.min(axis=2) > 235).mean())
+D:\dice_dreams\bot.py:1340: RuntimeWarning: Mean of empty slice
+  dark = float((box.mean(axis=2) < 120).mean())
